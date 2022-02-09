@@ -163,6 +163,8 @@ fi
 
 if [[ "${OS}" == "Linux" ]]
 then
+  sudo apt update && sudo apt upgrade -y
+
   which clang > /dev/null
   if [[ ($? -eq 0) ]]
   then
@@ -171,7 +173,6 @@ then
     echo "❌ clang is not installed"
     ohai "Installing make and clang..."
     wait_for_user
-    sudo apt update && sudo apt upgrade -y
     sudo apt install make clang -y
   fi
 
@@ -184,7 +185,6 @@ then
     echo "❌ Python and/or pip are not installed"
     ohai "Installing Python 3 and pip..."
     wait_for_user
-    sudo apt update && sudo apt upgrade -y
     sudo apt install python3-pip -y
   fi
 
@@ -197,7 +197,7 @@ then
     ohai "Installing libcs50..."
     wait_for_user
     curl -s https://packagecloud.io/install/repositories/cs50/repo/script.deb.sh | sudo bash
-    sudo apt install libcs50
+    sudo apt install libcs50 -y
   fi
 
 fi
