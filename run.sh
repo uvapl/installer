@@ -288,30 +288,31 @@ then
   # ~ is automatically expanded here
   homedir=~
 fi
-docdir="${homedir}/Documents/Programming"
+programming_dir="${homedir}/Documents/Programming"
+programming_dir_display="${programming_dir/$HOME/~}"
 
-if [[ -d ${docdir} ]]
+if [[ -d ${programming_dir} ]]
 then
   # print path using ~ to enhance usability
-  echo "✅ ${docdir/$HOME/~} exists"
+  echo "✅ ${programming_dir_display} exists"
 else
-  echo "❌ ${docdir/$HOME/~} does not exist"
-  ohai "Creating ${docdir/$HOME/~} directory"
+  echo "❌ ${programming_dir_display} does not exist"
+  ohai "Creating ${programming_dir_display} directory"
   wait_for_user
-  mkdir ${docdir}
+  mkdir ${programming_dir}
 fi
 
 # ----------------------------------------------------------------------------
 # Create Makefile in root development directory
 # ----------------------------------------------------------------------------
 
-cd ${docdir}
+cd ${programming_dir}
 if [[ -f Makefile && -s Makefile ]]
 then
-  echo "✅ Makefile is present in ${docdir}"
+  echo "✅ Makefile is present in ${programming_dir_display}"
 else
-  echo "❌ Makefile is not present in ${docdir}"
-  ohai "Creating Makefile in ${docdir}"
+  echo "❌ Makefile is not present in ${programming_dir_display}"
+  ohai "Creating Makefile in ${programming_dir_display}"
   wait_for_user
   cat > Makefile << EOF
 # Makefile for CS50-type assignments
