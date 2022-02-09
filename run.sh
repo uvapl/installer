@@ -236,7 +236,7 @@ then
   style50_version=`style50 -V | cut -d\  -f2`
   tick "style50 ${style50_version} is installed"
 else
-  tick "style50 is not installed"
+  cross "style50 is not installed"
   ohai "Installing style50..."
   wait_for_user
   pip3 install style50
