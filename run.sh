@@ -166,7 +166,7 @@ if [[ "${OS}" == "Linux" ]]
 then
   ohai "Updating Ubuntu..."
   wait_for_user
-  sudo apt-get update >1 /dev/null && sudo apt-get upgrade -y
+  sudo apt-get update 1> /dev/null && sudo apt-get upgrade -y 1> /dev/null
 
   which clang > /dev/null
   if [[ ($? -eq 0) ]]
