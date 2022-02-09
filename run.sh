@@ -282,11 +282,9 @@ then
   fi
 fi
 
-
 # ----------------------------------------------------------------------------
 # Create a development directory
 # ----------------------------------------------------------------------------
-
 
 if [[ "${OS}" == "Linux" ]]
 then
@@ -316,16 +314,25 @@ else
   touch Makefile
 fi
 
-
 # ----------------------------------------------------------------------------
-# Create makefile on request
+# Create Makefile in root development directory
 # ----------------------------------------------------------------------------
 
+cd ${docdir}
+if [[ -f Makefile && -s Makefile ]]
+then
+  echo "✅ Makefile is present in ${docdir}"
+else
+  echo "❌ Makefile is not present in ${docdir}"
+  ohai "Creating Makefile in ${docdir}"
+  wait_for_user
+  cat > Makefile << EOF
+# Makefile for CS50-type assignments
 
-# # Makefile for CS50-type assignments
-#
-# INCLUDE_PATH=${HOMEBREW_PREFIX}/opt/libcs50/include
-# LIBRARY_PATH=${HOMEBREW_PREFIX}/opt/libcs50/lib
-#
-# %: %.c
-#   clang -O0 -std=c11 -Wall -Werror -Wextra -Wno-sign-compare -Wno-unused-parameter -Wno-unused-variable -Wshadow -I${INCLUDE_PATH} -o $@ $< -L${LIBRARY_PATH} -lcs50 -lcrypt -lm
+%: %.c
+	clang -O0 -std=c11 -Wall -Werror -Wextra -Wno-sign-compare -Wno-unused-parameter -Wno-unused-variable -Wshadow -o \$@ \$< -lcs50 -lm
+
+clean:
+	rm -f *.o a.out core
+EOF
+fi
