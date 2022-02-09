@@ -149,7 +149,7 @@ then
   then
     echo "✅ Python and pip are on the same path"
   else
-    echo "❌ Python and pip are on the same path"
+    echo "❌ Python and pip are not on the same path"
     ohai "You will have to fix manually (ask for help!)..."
     echo ${python_path}
     echo ${pip_path}
@@ -163,6 +163,8 @@ fi
 
 if [[ "${OS}" == "Linux" ]]
 then
+  ohai "Updating Ubuntu..."
+  wait_for_user
   sudo apt update && sudo apt upgrade -y
 
   which clang > /dev/null
@@ -264,7 +266,7 @@ then
   then
       echo "✅ Library path is configured correctly in ${shell_rc}"
   else
-      echo "❌ Library path is configured correctly in ${shell_rc}"
+      echo "❌ Library path is not configured correctly in ${shell_rc}"
       ohai "Configuring library path..."
       wait_for_user
       echo "export C_INCLUDE_PATH=${HOMEBREW_PREFIX}/include" >> ${shell_rc}
@@ -281,7 +283,8 @@ fi
 
 if [[ "${OS}" == "Linux" ]]
 then
-  docdir=`wslpath "$(wslvar USERPROFILE)"`
+  homedir=`wslpath "$(wslvar USERPROFILE)"`
+  docdir="${homedir}/Documents/Programming"
 elif [[ "${OS}" == "Darwin" ]]
 then
   docdir=~/Documents/Programming
@@ -290,7 +293,7 @@ if [[ -d ${docdir} ]]
 then
   echo "✅ ${docdir} exists"
 else
-  echo "❌ ${docdir} exists"
+  echo "❌ ${docdir} does not exist"
   ohai "Creating ${docdir} directory"
   wait_for_user
   mkdir ${docdir}
@@ -300,7 +303,7 @@ if [[ -f Makefile ]]
 then
   echo "✅ Makefile is present in ${docdir}"
 else
-  echo "❌ Makefile is present in ${docdir}"
+  echo "❌ Makefile is not present in ${docdir}"
   ohai "Creating Makefile in ${docdir}"
   wait_for_user
   touch Makefile
