@@ -2,7 +2,7 @@
 
 # ----------------------------------------------------------------------------
 # UvA Programming lab development environment installer
-# 
+#
 # contributors:
 #   * Martijn Stegeman (@stgm)
 # ----------------------------------------------------------------------------
@@ -71,7 +71,7 @@ wait_for_user() {
 }
 
 # ----------------------------------------------------------------------------
-# Check the operating system before continuing 
+# Check the operating system before continuing
 # ----------------------------------------------------------------------------
 
 OS="$(uname)"
@@ -172,20 +172,20 @@ then
     ohai "Installing make and clang..."
     wait_for_user
     sudo apt update && sudo apt upgrade -y
-    sudo apt install make clang
+    sudo apt install make clang -y
   fi
 
-  which python3 > /dev/null
+  which pip3 > /dev/null
   if [[ ($? -eq 0) ]]
   then
     python_version=`python3 -V | cut -d\  -f2`
-    echo "✅ Python ${python_version} is installed"
+    echo "✅ Python ${python_version} and pip are installed"
   else
-    echo "❌ Python is not installed"
-    ohai "Installing Python 3 from Homebrew..."
+    echo "❌ Python and/or pip are not installed"
+    ohai "Installing Python 3 and pip..."
     wait_for_user
     sudo apt update && sudo apt upgrade -y
-    sudo apt install python3-pip
+    sudo apt install python3-pip -y
   fi
 
   apt list --installed | grep libcs50
@@ -199,7 +199,7 @@ then
     curl -s https://packagecloud.io/install/repositories/cs50/repo/script.deb.sh | sudo bash
     sudo apt install libcs50
   fi
-  
+
 fi
 
 # ----------------------------------------------------------------------------
