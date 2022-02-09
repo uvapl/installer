@@ -66,7 +66,7 @@ wait_for_user() {
   # we test for \r and \n because some stuff does \r instead
   if ! [[ "${c}" == $'\r' || "${c}" == $'\n' ]]
   then
-    echo "You did not press ENTER so we will stop!"
+    echo "You did not press RETURN so we will stop!"
     exit 1
   fi
 }
@@ -283,17 +283,20 @@ fi
 if [[ "${OS}" == "Linux" ]]
 then
   homedir=`wslpath "$(wslvar USERPROFILE)"`
-  docdir="${homedir}/Documents/Programming"
 elif [[ "${OS}" == "Darwin" ]]
 then
-  docdir=~/Documents/Programming
+  # ~ is automatically expanded here
+  homedir=~
 fi
+docdir="${homedir}/Documents/Programming"
+
 if [[ -d ${docdir} ]]
 then
-  echo "✅ ${docdir} exists"
+  # print path using ~ to enhance usability
+  echo "✅ ${docdir/$HOME/~} exists"
 else
-  echo "❌ ${docdir} does not exist"
-  ohai "Creating ${docdir} directory"
+  echo "❌ ${docdir/$HOME/~} does not exist"
+  ohai "Creating ${docdir/$HOME/~} directory"
   wait_for_user
   mkdir ${docdir}
 fi
