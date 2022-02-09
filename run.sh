@@ -303,16 +303,6 @@ else
   wait_for_user
   mkdir ${docdir}
 fi
-cd ${docdir}
-if [[ -f Makefile ]]
-then
-  echo "${tick} Makefile is present in ${docdir}"
-else
-  echo "${cross} Makefile is not present in ${docdir}"
-  ohai "Creating Makefile in ${docdir}"
-  wait_for_user
-  touch Makefile
-fi
 
 # ----------------------------------------------------------------------------
 # Create Makefile in root development directory
@@ -321,9 +311,9 @@ fi
 cd ${docdir}
 if [[ -f Makefile && -s Makefile ]]
 then
-  echo "✅ Makefile is present in ${docdir}"
+  echo "${tick} Makefile is present in ${docdir}"
 else
-  echo "❌ Makefile is not present in ${docdir}"
+  echo "${cross} Makefile is not present in ${docdir}"
   ohai "Creating Makefile in ${docdir}"
   wait_for_user
   cat > Makefile << EOF
