@@ -40,7 +40,15 @@ tty_bold="$(tty_mkbold 39)"
 tty_reset="$(tty_escape 0)"
 
 ohai() {
-  printf "${tty_blue}==>${tty_bold} %s${tty_reset}\n" "$(shell_join "$@")"
+  printf "${tty_blue}~>${tty_bold} %s${tty_reset}\n" "$(shell_join "$@")"
+}
+
+tick() {
+  printf " ${tty_green}v${tty_reset} %s\n" "$(shell_join "$@")"
+}
+
+cross() {
+  printf " ${tty_red}x${tty_reset} %s\n" "$(shell_join "$@")"
 }
 
 getc() {
@@ -61,8 +69,7 @@ ring_bell() {
 
 wait_for_user() {
   local c
-  echo
-  echo "Press ${tty_bold}RETURN${tty_reset} to continue or any other key to abort:"
+  echo "   Press ${tty_bold}RETURN${tty_reset} to continue or any other key to abort:"
   getc c
   # we test for \r and \n because some stuff does \r instead
   if ! [[ "${c}" == $'\r' || "${c}" == $'\n' ]]
@@ -80,13 +87,9 @@ OS="$(uname)"
 if [[ "${OS}" == "Linux" ]]
 then
   ohai "Let's install the UvA Programming Lab environment in your WSL!"
-  tick="${tty_green}v${tty_reset}"
-  cross="${tty_red}x${tty_reset}"
 elif [[ "${OS}" == "Darwin" ]]
 then
   ohai "Let's install the UvA Programming Lab environment on your Mac!"
-  tick="✅"
-  cross="❌"
 else
   ohai "You can't use this on anything other than macOS or Linux!"
   exit 1
@@ -109,16 +112,16 @@ then
       eval "$(/opt/homebrew/bin/brew shellenv)"
     fi
   else
-    echo "✅ Homebrew is installed"
+    tick "Homebrew is installed"
   fi
 
   brew list -1 | grep libmagic > /dev/null
   if [[ ($? -eq 0) ]]
   then
     python_version=`python3 -V | cut -d\  -f2`
-    echo "✅ libmagic is installed"
+    tick "libmagic is installed"
   else
-    echo "❌ libmagic is not installed"
+    cross "libmagic is not installed"
     ohai "Installing libmagic..."
     wait_for_user
     brew install libmagic
@@ -127,9 +130,9 @@ then
   brew list -1 | grep libcs50 > /dev/null
   if [[ ($? -eq 0) ]]
   then
-    echo "✅ libcs50 is installed"
+    tick "libcs50 is installed"
   else
-    echo "❌ libcs50 is not installed"
+    cross "libcs50 is not installed"
     ohai "Installing libcs50..."
     wait_for_user
     brew install libcs50
@@ -139,9 +142,9 @@ then
   if [[ ($? -eq 0) ]]
   then
     python_version=`python3 -V | cut -d\  -f2`
-    echo "✅ Python ${python_version} is installed"
+    tick "Python ${python_version} is installed"
   else
-    echo "❌ Python is not installed"
+    cross "Python is not installed"
     ohai "Installing Python 3 from Homebrew..."
     wait_for_user
     brew install python3
@@ -153,9 +156,9 @@ then
   pip_dirname=`dirname ${pip_path}`
   if [[ "python_path" != "pip_path" ]]
   then
-    echo "✅ Python and pip are on the same path"
+    tick "Python and pip are on the same path"
   else
-    echo "❌ Python and pip are not on the same path"
+    cross "Python and pip are not on the same path"
     ohai "You will have to fix manually (ask for help!)..."
     echo ${python_path}
     echo ${pip_path}
@@ -177,9 +180,9 @@ then
   which clang > /dev/null
   if [[ ($? -eq 0) ]]
   then
-    echo "${tick} clang is installed"
+    tick "clang is installed"
   else
-    echo "${cross} clang is not installed"
+    cross "clang is not installed"
     ohai "Installing make and clang..."
     wait_for_user
     sudo apt-get install make clang -y
@@ -189,9 +192,9 @@ then
   if [[ ($? -eq 0) ]]
   then
     python_version=`python3 -V | cut -d\  -f2`
-    echo "${tick} Python ${python_version} and pip are installed"
+    tick "Python ${python_version} and pip are installed"
   else
-    echo "${cross} Python and/or pip are not installed"
+    cross "Python and/or pip are not installed"
     ohai "Installing Python 3 and pip..."
     wait_for_user
     sudo apt-get install python3-pip -y
@@ -200,9 +203,9 @@ then
   dpkg --list | grep libcs50 > /dev/null
   if [[ ($? -eq 0) ]]
   then
-    echo "${tick} libcs50 is installed"
+    tick "libcs50 is installed"
   else
-    echo "${cross} libcs50 is not installed"
+    cross "libcs50 is not installed"
     ohai "Installing libcs50..."
     wait_for_user
     curl -s https://packagecloud.io/install/repositories/cs50/repo/script.deb.sh | sudo bash
@@ -219,9 +222,9 @@ pip3 -q show check50 2> /dev/null
 if [[ ($? -eq 0) ]]
 then
   check50_version=`check50 -V | cut -d\  -f2`
-  echo "${tick} check50 ${check50_version} is installed"
+  tick "check50 ${check50_version} is installed"
 else
-  echo "${cross} check50 is not installed"
+  cross "check50 is not installed"
   ohai "Installing check50..."
   wait_for_user
   pip3 install check50
@@ -231,9 +234,9 @@ pip3 -q show style50 2> /dev/null
 if [[ ($? -eq 0) ]]
 then
   style50_version=`style50 -V | cut -d\  -f2`
-  echo "${tick} style50 ${style50_version} is installed"
+  tick "style50 ${style50_version} is installed"
 else
-  echo "${cross} style50 is not installed"
+  tick "style50 is not installed"
   ohai "Installing style50..."
   wait_for_user
   pip3 install style50
@@ -271,9 +274,9 @@ then
   cat ${shell_rc} | grep C_INCLUDE_PATH | grep -qv "^\s*#" > /dev/null
   if [[ ($? -eq 0) ]]
   then
-      echo "✅ Library path is configured correctly in ${shell_rc/$HOME/~}"
+      tick "Library path is configured correctly in ${shell_rc/$HOME/~}"
   else
-      echo "❌ Library path is not configured correctly in ${shell_rc/$HOME/~}"
+      cross "Library path is not configured correctly in ${shell_rc/$HOME/~}"
       ohai "Configuring library path..."
       wait_for_user
       echo "export C_INCLUDE_PATH=${HOMEBREW_PREFIX}/include" >> ${shell_rc}
@@ -300,9 +303,9 @@ programming_dir_display="${programming_dir/$HOME/~}"
 if [[ -d ${programming_dir} ]]
 then
   # print path using ~ to enhance usability
-  echo "${tick} ${programming_dir_display} exists"
+  tick "${programming_dir_display} exists"
 else
-  echo "${cross} ${programming_dir_display} does not exist"
+  cross "${programming_dir_display} does not exist"
   ohai "Creating ${programming_dir_display} directory"
   wait_for_user
   mkdir ${programming_dir}
@@ -315,9 +318,9 @@ fi
 cd ${programming_dir}
 if [[ -f Makefile && -s Makefile ]]
 then
-  echo "${tick} Makefile is present in ${programming_dir_display}"
+  tick "Makefile is present in ${programming_dir_display}"
 else
-  echo "${cross} Makefile is not present in ${programming_dir_display}"
+  cross "Makefile is not present in ${programming_dir_display}"
   ohai "Creating Makefile in ${programming_dir_display}"
   wait_for_user
   cat > Makefile << EOF
@@ -330,3 +333,5 @@ clean:
 	rm -f *.o a.out core
 EOF
 fi
+
+ohai "Everything's done now!"
