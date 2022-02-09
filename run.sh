@@ -281,30 +281,29 @@ fi
 
 if [[ "${OS}" == "Linux" ]]
 then
-  ohai "Create dir on Linux"
-  crash mkdir /mnt/c/Users/.../Documents/Programming
+  docdir=`wslpath "$(wslvar USERPROFILE)"`
 elif [[ "${OS}" == "Darwin" ]]
 then
-  mac_docdir=~/Documents/Programming
-  if [[ -d ${mac_docdir} ]]
-  then
-    echo "✅ ~/Documents/Programming exists"
-  else
-    echo "❌ ~/Documents/Programming exists"
-    ohai "Creating ~/Documents/Programming directory"
-    wait_for_user
-    mkdir ~/Documents/Programming
-  fi
-  cd ${mac_docdir}
-  if [[ -f Makefile ]]
-  then
-    echo "✅ Makefile is present in ~/Documents/Programming"
-  else
-    echo "❌ Makefile is present in ~/Documents/Programming"
-    ohai "Creating Makefile in ~/Documents/Programming"
-    wait_for_user
-    touch Makefile
-  fi
+  docdir=~/Documents/Programming
+fi
+if [[ -d ${docdir} ]]
+then
+  echo "✅ ${docdir} exists"
+else
+  echo "❌ ${docdir} exists"
+  ohai "Creating ${docdir} directory"
+  wait_for_user
+  mkdir ${docdir}
+fi
+cd ${docdir}
+if [[ -f Makefile ]]
+then
+  echo "✅ Makefile is present in ${docdir}"
+else
+  echo "❌ Makefile is present in ${docdir}"
+  ohai "Creating Makefile in ${docdir}"
+  wait_for_user
+  touch Makefile
 fi
 
 
