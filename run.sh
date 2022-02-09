@@ -2,9 +2,10 @@
 
 # ----------------------------------------------------------------------------
 # UvA Programming lab development environment installer
-# 
+#
 # contributors:
 #   * Martijn Stegeman (@stgm)
+#   * Marijn Doeve (@TheRijn)
 # ----------------------------------------------------------------------------
 
 
@@ -71,7 +72,7 @@ wait_for_user() {
 }
 
 # ----------------------------------------------------------------------------
-# Check the operating system before continuing 
+# Check the operating system before continuing
 # ----------------------------------------------------------------------------
 
 OS="$(uname)"
@@ -149,7 +150,7 @@ then
   then
     echo "✅ Python and pip are on the same path"
   else
-    echo "❌ Python and pip are on the same path"
+    echo "❌ Python and pip are not on the same path"
     ohai "You will have to fix manually (ask for help!)..."
     echo ${python_path}
     echo ${pip_path}
@@ -163,6 +164,10 @@ fi
 
 if [[ "${OS}" == "Linux" ]]
 then
+  ohai "Updating Ubuntu..."
+  wait_for_user
+  sudo apt-get update >1 /dev/null && sudo apt-get upgrade -y
+
   which clang > /dev/null
   if [[ ($? -eq 0) ]]
   then
@@ -171,24 +176,22 @@ then
     echo "❌ clang is not installed"
     ohai "Installing make and clang..."
     wait_for_user
-    sudo apt update && sudo apt upgrade -y
-    sudo apt install make clang
+    sudo apt-get install make clang -y
   fi
 
-  which python3 > /dev/null
+  which pip3 > /dev/null
   if [[ ($? -eq 0) ]]
   then
     python_version=`python3 -V | cut -d\  -f2`
-    echo "✅ Python ${python_version} is installed"
+    echo "✅ Python ${python_version} and pip are installed"
   else
-    echo "❌ Python is not installed"
-    ohai "Installing Python 3 from Homebrew..."
+    echo "❌ Python and/or pip are not installed"
+    ohai "Installing Python 3 and pip..."
     wait_for_user
-    sudo apt update && sudo apt upgrade -y
-    sudo apt install python3-pip
+    sudo apt-get install python3-pip -y
   fi
 
-  apt list --installed | grep libcs50
+  apt-get list --installed | grep libcs50
   if [[ ($? -eq 0) ]]
   then
     echo "✅ libcs50 is installed"
@@ -197,9 +200,9 @@ then
     ohai "Installing libcs50..."
     wait_for_user
     curl -s https://packagecloud.io/install/repositories/cs50/repo/script.deb.sh | sudo bash
-    sudo apt install libcs50
+    sudo apt-get install libcs50 -y
   fi
-  
+
 fi
 
 # ----------------------------------------------------------------------------
@@ -264,7 +267,7 @@ then
   then
       echo "✅ Library path is configured correctly in ${shell_rc}"
   else
-      echo "❌ Library path is configured correctly in ${shell_rc}"
+      echo "❌ Library path is not configured correctly in ${shell_rc}"
       ohai "Configuring library path..."
       wait_for_user
       echo "export C_INCLUDE_PATH=${HOMEBREW_PREFIX}/include" >> ${shell_rc}
@@ -281,30 +284,30 @@ fi
 
 if [[ "${OS}" == "Linux" ]]
 then
-  ohai "Create dir on Linux"
-  crash mkdir /mnt/c/Users/.../Documents/Programming
+  homedir=`wslpath "$(wslvar USERPROFILE)"`
+  docdir="${homedir}/Documents/Programming"
 elif [[ "${OS}" == "Darwin" ]]
 then
-  mac_docdir=~/Documents/Programming
-  if [[ -d ${mac_docdir} ]]
-  then
-    echo "✅ ~/Documents/Programming exists"
-  else
-    echo "❌ ~/Documents/Programming exists"
-    ohai "Creating ~/Documents/Programming directory"
-    wait_for_user
-    mkdir ~/Documents/Programming
-  fi
-  cd ${mac_docdir}
-  if [[ -f Makefile ]]
-  then
-    echo "✅ Makefile is present in ~/Documents/Programming"
-  else
-    echo "❌ Makefile is present in ~/Documents/Programming"
-    ohai "Creating Makefile in ~/Documents/Programming"
-    wait_for_user
-    touch Makefile
-  fi
+  docdir=~/Documents/Programming
+fi
+if [[ -d ${docdir} ]]
+then
+  echo "✅ ${docdir} exists"
+else
+  echo "❌ ${docdir} does not exist"
+  ohai "Creating ${docdir} directory"
+  wait_for_user
+  mkdir ${docdir}
+fi
+cd ${docdir}
+if [[ -f Makefile ]]
+then
+  echo "✅ Makefile is present in ${docdir}"
+else
+  echo "❌ Makefile is not present in ${docdir}"
+  ohai "Creating Makefile in ${docdir}"
+  wait_for_user
+  touch Makefile
 fi
 
 
