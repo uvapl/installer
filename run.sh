@@ -35,6 +35,7 @@ tty_mkbold() { tty_escape "1;$1"; }
 tty_underline="$(tty_escape "4;39")"
 tty_blue="$(tty_mkbold 34)"
 tty_red="$(tty_mkbold 31)"
+tty_green="$(tty_mkbold 32)"
 tty_bold="$(tty_mkbold 39)"
 tty_reset="$(tty_escape 0)"
 
@@ -79,9 +80,13 @@ OS="$(uname)"
 if [[ "${OS}" == "Linux" ]]
 then
   ohai "Let's install the UvA Programming Lab environment in your WSL!"
+  tick="${tty_green}v${tty_reset}"
+  cross="${tty_red}x${tty_reset}"
 elif [[ "${OS}" == "Darwin" ]]
 then
   ohai "Let's install the UvA Programming Lab environment on your Mac!"
+  tick="✅"
+  cross="❌"
 else
   ohai "You can't use this on anything other than macOS or Linux!"
   exit 1
@@ -166,14 +171,15 @@ if [[ "${OS}" == "Linux" ]]
 then
   ohai "Updating Ubuntu..."
   wait_for_user
+  echo "This may take a few minutes..."
   sudo apt-get update 1> /dev/null && sudo apt-get upgrade -y 1> /dev/null
 
   which clang > /dev/null
   if [[ ($? -eq 0) ]]
   then
-    echo "✅ clang is installed"
+    echo "${tick} clang is installed"
   else
-    echo "❌ clang is not installed"
+    echo "${cross} clang is not installed"
     ohai "Installing make and clang..."
     wait_for_user
     sudo apt-get install make clang -y
@@ -183,20 +189,20 @@ then
   if [[ ($? -eq 0) ]]
   then
     python_version=`python3 -V | cut -d\  -f2`
-    echo "✅ Python ${python_version} and pip are installed"
+    echo "${tick} Python ${python_version} and pip are installed"
   else
-    echo "❌ Python and/or pip are not installed"
+    echo "${cross} Python and/or pip are not installed"
     ohai "Installing Python 3 and pip..."
     wait_for_user
     sudo apt-get install python3-pip -y
   fi
 
-  dpkg --list | grep libcs50
+  dpkg --list | grep libcs50 > /dev/null
   if [[ ($? -eq 0) ]]
   then
-    echo "✅ libcs50 is installed"
+    echo "${tick} libcs50 is installed"
   else
-    echo "❌ libcs50 is not installed"
+    echo "${cross} libcs50 is not installed"
     ohai "Installing libcs50..."
     wait_for_user
     curl -s https://packagecloud.io/install/repositories/cs50/repo/script.deb.sh | sudo bash
@@ -213,9 +219,9 @@ pip3 -q show check50 2> /dev/null
 if [[ ($? -eq 0) ]]
 then
   check50_version=`check50 -V | cut -d\  -f2`
-  echo "✅ check50 ${check50_version} is installed"
+  echo "${tick} check50 ${check50_version} is installed"
 else
-  echo "❌ check50 is not installed"
+  echo "${cross} check50 is not installed"
   ohai "Installing check50..."
   wait_for_user
   pip3 install check50
@@ -225,9 +231,9 @@ pip3 -q show style50 2> /dev/null
 if [[ ($? -eq 0) ]]
 then
   style50_version=`style50 -V | cut -d\  -f2`
-  echo "✅ style50 ${style50_version} is installed"
+  echo "${tick} style50 ${style50_version} is installed"
 else
-  echo "❌ style50 is not installed"
+  echo "${cross} style50 is not installed"
   ohai "Installing style50..."
   wait_for_user
   pip3 install style50
@@ -292,9 +298,9 @@ then
 fi
 if [[ -d ${docdir} ]]
 then
-  echo "✅ ${docdir} exists"
+  echo "${tick} ${docdir} exists"
 else
-  echo "❌ ${docdir} does not exist"
+  echo "${cross} ${docdir} does not exist"
   ohai "Creating ${docdir} directory"
   wait_for_user
   mkdir ${docdir}
@@ -302,9 +308,9 @@ fi
 cd ${docdir}
 if [[ -f Makefile ]]
 then
-  echo "✅ Makefile is present in ${docdir}"
+  echo "${tick} Makefile is present in ${docdir}"
 else
-  echo "❌ Makefile is not present in ${docdir}"
+  echo "${cross} Makefile is not present in ${docdir}"
   ohai "Creating Makefile in ${docdir}"
   wait_for_user
   touch Makefile
