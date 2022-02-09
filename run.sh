@@ -67,7 +67,7 @@ wait_for_user() {
   # we test for \r and \n because some stuff does \r instead
   if ! [[ "${c}" == $'\r' || "${c}" == $'\n' ]]
   then
-    echo "You did not press ENTER so we will stop!"
+    echo "You did not press RETURN so we will stop!"
     exit 1
   fi
 }
@@ -271,9 +271,9 @@ then
   cat ${shell_rc} | grep C_INCLUDE_PATH | grep -qv "^\s*#" > /dev/null
   if [[ ($? -eq 0) ]]
   then
-      echo "✅ Library path is configured correctly in ${shell_rc}"
+      echo "✅ Library path is configured correctly in ${shell_rc/$HOME/~}"
   else
-      echo "❌ Library path is not configured correctly in ${shell_rc}"
+      echo "❌ Library path is not configured correctly in ${shell_rc/$HOME/~}"
       ohai "Configuring library path..."
       wait_for_user
       echo "export C_INCLUDE_PATH=${HOMEBREW_PREFIX}/include" >> ${shell_rc}
@@ -289,32 +289,36 @@ fi
 if [[ "${OS}" == "Linux" ]]
 then
   homedir=`wslpath "$(wslvar USERPROFILE)"`
-  docdir="${homedir}/Documents/Programming"
 elif [[ "${OS}" == "Darwin" ]]
 then
-  docdir=~/Documents/Programming
+  # ~ is automatically expanded here
+  homedir=~
 fi
-if [[ -d ${docdir} ]]
+programming_dir="${homedir}/Documents/Programming"
+programming_dir_display="${programming_dir/$HOME/~}"
+
+if [[ -d ${programming_dir} ]]
 then
-  echo "${tick} ${docdir} exists"
+  # print path using ~ to enhance usability
+  echo "${tick} ${programming_dir_display} exists"
 else
-  echo "${cross} ${docdir} does not exist"
-  ohai "Creating ${docdir} directory"
+  echo "${cross} ${programming_dir_display} does not exist"
+  ohai "Creating ${programming_dir_display} directory"
   wait_for_user
-  mkdir ${docdir}
+  mkdir ${programming_dir}
 fi
 
 # ----------------------------------------------------------------------------
 # Create Makefile in root development directory
 # ----------------------------------------------------------------------------
 
-cd ${docdir}
+cd ${programming_dir}
 if [[ -f Makefile && -s Makefile ]]
 then
-  echo "${tick} Makefile is present in ${docdir}"
+  echo "${tick} Makefile is present in ${programming_dir_display}"
 else
-  echo "${cross} Makefile is not present in ${docdir}"
-  ohai "Creating Makefile in ${docdir}"
+  echo "${cross} Makefile is not present in ${programming_dir_display}"
+  ohai "Creating Makefile in ${programming_dir_display}"
   wait_for_user
   cat > Makefile << EOF
 # Makefile for CS50-type assignments
