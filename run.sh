@@ -191,7 +191,7 @@ then
     sudo apt-get install python3-pip -y
   fi
 
-  apt-get list --installed | grep libcs50
+  dpkg --list | grep libcs50
   if [[ ($? -eq 0) ]]
   then
     echo "✅ libcs50 is installed"
