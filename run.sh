@@ -5,6 +5,7 @@
 #
 # contributors:
 #   * Martijn Stegeman (@stgm)
+#   * Marijn Doeve (@TheRijn)
 # ----------------------------------------------------------------------------
 
 
@@ -165,7 +166,7 @@ if [[ "${OS}" == "Linux" ]]
 then
   ohai "Updating Ubuntu..."
   wait_for_user
-  sudo apt update && sudo apt upgrade -y
+  sudo apt-get update >1 /dev/null && sudo apt-get upgrade -y
 
   which clang > /dev/null
   if [[ ($? -eq 0) ]]
@@ -175,7 +176,7 @@ then
     echo "❌ clang is not installed"
     ohai "Installing make and clang..."
     wait_for_user
-    sudo apt install make clang -y
+    sudo apt-get install make clang -y
   fi
 
   which pip3 > /dev/null
@@ -187,10 +188,10 @@ then
     echo "❌ Python and/or pip are not installed"
     ohai "Installing Python 3 and pip..."
     wait_for_user
-    sudo apt install python3-pip -y
+    sudo apt-get install python3-pip -y
   fi
 
-  apt list --installed | grep libcs50
+  apt-get list --installed | grep libcs50
   if [[ ($? -eq 0) ]]
   then
     echo "✅ libcs50 is installed"
@@ -199,7 +200,7 @@ then
     ohai "Installing libcs50..."
     wait_for_user
     curl -s https://packagecloud.io/install/repositories/cs50/repo/script.deb.sh | sudo bash
-    sudo apt install libcs50 -y
+    sudo apt-get install libcs50 -y
   fi
 
 fi
