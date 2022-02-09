@@ -265,9 +265,9 @@ then
   cat ${shell_rc} | grep C_INCLUDE_PATH | grep -qv "^\s*#" > /dev/null
   if [[ ($? -eq 0) ]]
   then
-      echo "✅ Library path is configured correctly in ${shell_rc}"
+      echo "✅ Library path is configured correctly in ${shell_rc/$HOME/~}"
   else
-      echo "❌ Library path is not configured correctly in ${shell_rc}"
+      echo "❌ Library path is not configured correctly in ${shell_rc/$HOME/~}"
       ohai "Configuring library path..."
       wait_for_user
       echo "export C_INCLUDE_PATH=${HOMEBREW_PREFIX}/include" >> ${shell_rc}
