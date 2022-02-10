@@ -137,7 +137,7 @@ then
     cross "libcs50 is not installed"
     ohai "Installing libcs50..."
     wait_for_user
-    brew install libcs50
+    brew install minprog/pkg/libcs50
   fi
 
   which python3 > /dev/null
