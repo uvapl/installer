@@ -195,8 +195,10 @@ then
     sudo apt-get update 1> /dev/null && sudo apt-get upgrade -y 1> /dev/null
   fi
 
-  which clang > /dev/null
-  if [[ ($? -eq 0) ]]
+  dpkg_list=`dpkg --list`
+
+  num_pkgs=`echo ${dpkg_list} | grep -E "(make|clang|astyle)" | wc -l | grep -o "\d*"`
+  if [[ "${num_pkgs}" == "3" ]]
   then
     tick "clang is installed"
   else
@@ -218,7 +220,7 @@ then
     sudo apt-get install python3-pip -y
   fi
 
-  dpkg --list | grep libcs50 > /dev/null
+  echo ${dpkg_list} | grep libcs50 > /dev/null
   if [[ ($? -eq 0) ]]
   then
     tick "libcs50 is installed"
@@ -254,7 +256,7 @@ then
   style50_version=`style50 -V | cut -d\  -f2`
   tick "style50 ${style50_version} is installed"
 else
-  tick "style50 is not installed"
+  cross "style50 is not installed"
   ohai "Installing style50..."
   wait_for_user
   pip3 install style50
