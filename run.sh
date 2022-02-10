@@ -104,7 +104,7 @@ then
   which brew > /dev/null
   if [[ ($? -eq 0) ]]
   then
-    homebrew_version=`brew -v | head -1 | cut -d\  -f2`
+    homebrew_version=`brew -v | cut -d\  -f2 | head -1`
     tick "Homebrew ${homebrew_version} is installed"
   else
     ohai "Homebrew must be installed. It is a 'package manager' that helps to install software that we need for development."
