@@ -40,15 +40,23 @@ tty_bold="$(tty_mkbold 39)"
 tty_reset="$(tty_escape 0)"
 
 ohai() {
-  printf "${tty_blue}~>${tty_bold} %s${tty_reset}\n" "$(shell_join "$@")"
+  printf "${tty_blue}==>${tty_bold} %s${tty_reset}\n" "$(shell_join "$@")"
+}
+
+waitforit() {
+  printf "${tty_bold}%s${tty_reset}" "$(shell_join "$@")"
+}
+
+bold() {
+  printf "${tty_bold}%s${tty_reset}\n" "$(shell_join "$@")"
 }
 
 tick() {
-  printf " ${tty_green}v${tty_reset} %s\n" "$(shell_join "$@")"
+  printf "${tty_green}v${tty_reset} %s\n" "$(shell_join "$@")"
 }
 
 cross() {
-  printf " ${tty_red}x${tty_reset} %s\n" "$(shell_join "$@")"
+  printf "${tty_red}x${tty_reset} %s\n" "$(shell_join "$@")"
 }
 
 getc() {
@@ -69,7 +77,7 @@ ring_bell() {
 
 wait_for_user() {
   local c
-  echo "   Press ${tty_bold}RETURN${tty_reset} to continue or any other key to abort:"
+  echo -n "Press ${tty_bold}RETURN${tty_reset} to continue install or any other key to abort:"
   getc c
   # we test for \r and \n because some stuff does \r instead
   if ! [[ "${c}" == $'\r' || "${c}" == $'\n' ]]
@@ -77,6 +85,70 @@ wait_for_user() {
     echo "You did not press RETURN so we will stop!"
     exit 1
   fi
+  echo
+}
+
+# ----------------------------------------------------------------------------
+# Spinner https://github.com/tlatsas/bash-spinner
+# ----------------------------------------------------------------------------
+
+function _spinner() {
+    # $1 start/stop
+    #
+    # on start: $2 display message
+    # on stop : $2 process exit status
+    #           $3 spinner function pid (supplied from stop_spinner)
+
+    local on_success="DONE"
+    local on_fail="FAIL"
+    local white="\033[1;37m"
+    local green="\033[1;32m"
+    local red="\033[1;31m"
+    local nc="\033[0m"
+
+    case $1 in
+        start)
+            # start spinner
+            i=1
+            sp='\|/-'
+            delay=${SPINNER_DELAY:-0.15}
+
+            while :
+            do
+                printf "\b${sp:i++%${#sp}:1}"
+                sleep $delay
+            done
+            ;;
+        stop)
+            if [[ -z ${2} ]]; then
+                echo "spinner is not running.."
+                exit 1
+            fi
+
+            kill $2 > /dev/null 2>&1
+
+            # backspace spinner
+            echo -en "\b"
+            ;;
+        *)
+            echo "invalid argument, try {start/stop}"
+            exit 1
+            ;;
+    esac
+}
+
+function start_spinner {
+    # $1 : msg to display
+    _spinner "start" &
+    # set global spinner pid
+    _sp_pid=$!
+    disown
+}
+
+function stop_spinner {
+    # $1 : command exit status
+    _spinner "stop" $_sp_pid
+    unset _sp_pid
 }
 
 # ----------------------------------------------------------------------------
@@ -101,7 +173,12 @@ fi
 
 if [[ "${OS}" == "Darwin" ]]
 then
+  waitforit "Checking software updates..."
+  start_spinner
   no_sw_updates=`softwareupdate -l 2>&1 | grep "No new software available." | wc -l`
+  stop_spinner
+  echo -ne "\033[1K"
+  printf "\r"
   if [[ "${no_sw_updates}" == "       1" ]]
   then
     tick "All software updates installed"
@@ -110,6 +187,10 @@ then
     wait_for_user
   fi
 
+  # Let Homebrew complainbrag less
+  export HOMEBREW_NO_ENV_HINTS=true
+
+  ohai "Checking Homebrew installation..."
   which brew > /dev/null
   if [[ ($? -eq 0) ]]
   then
@@ -126,6 +207,7 @@ then
     fi
   fi
 
+  ohai "Checking libmagic..."
   brew list -1 | grep libmagic > /dev/null
   if [[ ($? -eq 0) ]]
   then
@@ -133,11 +215,12 @@ then
     tick "libmagic is installed"
   else
     cross "libmagic is not installed"
-    ohai "Installing libmagic..."
     wait_for_user
+    ohai "Installing libmagic..."
     brew install libmagic
   fi
 
+  ohai "Checking libcs50..."
   brew list -1 | grep libcs50 > /dev/null
   if [[ ($? -eq 0) ]]
   then
@@ -149,6 +232,7 @@ then
     brew install minprog/pkg/libcs50
   fi
 
+  ohai "Checking Python installation..."
   which python3 > /dev/null
   if [[ ($? -eq 0) ]]
   then
@@ -185,6 +269,7 @@ if [[ "${OS}" == "Linux" ]]
 then
 
   # Update ubuntu packages, but only if clang is NOT already installed
+  ohai "Checking software updates..."
   which clang > /dev/null
   if [[ ($? -ne 0) ]]
   then
@@ -195,6 +280,7 @@ then
     sudo apt-get update 1> /dev/null && sudo apt-get upgrade -y 1> /dev/null
   fi
 
+  ohai "Checking installed packages..."
   dpkg_list=`dpkg --list`
 
   num_pkgs=`echo ${dpkg_list} | grep -E "(make|clang|astyle)" | wc -l | grep -o "\d*"`
@@ -238,6 +324,7 @@ fi
 # Install check50 and style50 via Pip
 # ----------------------------------------------------------------------------
 
+ohai "Checking check50 and style50 installation..."
 pip3 -q show check50 2> /dev/null
 if [[ ($? -eq 0) ]]
 then
@@ -247,7 +334,7 @@ else
   cross "check50 is not installed"
   ohai "Installing check50..."
   wait_for_user
-  pip3 install check50
+  pip3 install check50 2>&1 | grep -Ev "(DEPRECATION|satisfied)"
 fi
 
 pip3 -q show style50 2> /dev/null
@@ -259,7 +346,7 @@ else
   cross "style50 is not installed"
   ohai "Installing style50..."
   wait_for_user
-  pip3 install style50
+  pip3 install style50 2>&1 | grep -Ev "(DEPRECATION|satisfied)"
 fi
 
 # ----------------------------------------------------------------------------
@@ -289,6 +376,7 @@ esac
 # echo ${shell_profile}
 
 # check if config already contains include line
+ohai "Checking configuration..."
 if [[ "${HOMEBREW_PREFIX}" == "/opt/homebrew" ]]
 then
   cat ${shell_rc} | grep C_INCLUDE_PATH | grep -qv "^\s*#" > /dev/null
