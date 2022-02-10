@@ -101,6 +101,15 @@ fi
 
 if [[ "${OS}" == "Darwin" ]]
 then
+  no_sw_updates=`softwareupdate -l 2>&1 | grep "No new software available." | wc -l`
+  if [[ "${no_sw_updates}" == "       1" ]]
+  then
+    tick "All software updates installed"
+  else
+    cross "Some software updates are not installed, you may need to do this before continuing."
+    wait_for_user
+  fi
+
   which brew > /dev/null
   if [[ ($? -eq 0) ]]
   then
