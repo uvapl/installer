@@ -183,10 +183,17 @@ fi
 
 if [[ "${OS}" == "Linux" ]]
 then
-  ohai "Updating Ubuntu..."
-  wait_for_user
-  echo "This may take a few minutes..."
-  sudo apt-get update 1> /dev/null && sudo apt-get upgrade -y 1> /dev/null
+
+  # Update ubuntu packages, but only if clang is NOT already installed
+  which clang > /dev/null
+  if [[ ($? -ne 0) ]]
+  then
+    ohai "Updating Ubuntu..."
+    echo "Please enter your sudo password if needed..."
+    sudo true
+    echo "Installing updates. This will take a few minutes!"
+    sudo apt-get update 1> /dev/null && sudo apt-get upgrade -y 1> /dev/null
+  fi
 
   which clang > /dev/null
   if [[ ($? -eq 0) ]]
