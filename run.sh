@@ -101,8 +101,12 @@ fi
 
 if [[ "${OS}" == "Darwin" ]]
 then
-  if [[ "${HOMEBREW_PREFIX}" == "" ]]
+  which brew > /dev/null
+  if [[ ($? -eq 0) ]]
   then
+    homebrew_version=`brew -v | head -1 | cut -d\  -f2`
+    tick "Homebrew ${homebrew_version} is installed"
+  else
     ohai "Homebrew must be installed. It is a 'package manager' that helps to install software that we need for development."
     wait_for_user
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
@@ -111,8 +115,6 @@ then
       echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> .zprofile
       eval "$(/opt/homebrew/bin/brew shellenv)"
     fi
-  else
-    tick "Homebrew is installed"
   fi
 
   brew list -1 | grep libmagic > /dev/null
