@@ -281,10 +281,9 @@ then
   fi
 
   ohai "Checking installed packages..."
-  dpkg_list=`dpkg --list`
 
-  num_pkgs=`echo ${dpkg_list} | grep -E "(make|clang|astyle)" | wc -l | grep -o "\d*"`
-  if [[ "${num_pkgs}" == "3" ]]
+  dpkg -s make clang astyle > /dev/null
+  if [[ ($? -eq 0) ]]
   then
     tick "clang is installed"
   else
