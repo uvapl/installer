@@ -256,8 +256,10 @@ then
   fi
 
   ohai "Checking Python installation..."
-  which python3 > /dev/null
-  if [[ ($? -eq 0) ]]
+  
+  # python musn't be the system Python
+  python_path=`which python3`
+  if [[ ($? -eq 0) && ${python_path} != /usr/bin/* ]]
   then
     python_version=`python3 -V | cut -d\  -f2`
     tick "Python ${python_version} is installed"
@@ -268,7 +270,6 @@ then
     brew install python3
   fi
 
-  python_path=`which python3`
   pip_path=`which pip3`
   python_dirname=`dirname ${python_path}`
   pip_dirname=`dirname ${pip_path}`
