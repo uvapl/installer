@@ -45,6 +45,13 @@ ohai() {
 
 waitforit() {
   printf "${tty_bold}%s${tty_reset}" "$(shell_join "$@")"
+  start_spinner
+}
+
+clear_wait() {
+  stop_spinner
+  echo -ne "\033[1K"
+  printf "\r"
 }
 
 bold() {
@@ -110,7 +117,7 @@ function _spinner() {
         start)
             # start spinner
             i=1
-            sp='\|/-'
+            sp='*+x'
             delay=${SPINNER_DELAY:-0.15}
 
             while :
@@ -121,7 +128,7 @@ function _spinner() {
             ;;
         stop)
             if [[ -z ${2} ]]; then
-                echo "spinner is not running.."
+                echo ""
                 exit 1
             fi
 
@@ -143,6 +150,7 @@ function start_spinner {
     # set global spinner pid
     _sp_pid=$!
     disown
+    trap 'stop_spinner; wait' SIGINT
 }
 
 function stop_spinner {
@@ -192,12 +200,9 @@ fi
 
 if [[ "${OS}" == "Darwin" ]]
 then
-  waitforit "Checking software updates..."
-  start_spinner
+  waitforit "Checking software updates...  "
   no_sw_updates=`softwareupdate -l 2>&1 | grep "No new software available." | wc -l`
-  stop_spinner
-  echo -ne "\033[1K"
-  printf "\r"
+  clear_wait
   if [[ "${no_sw_updates}" == "       1" ]]
   then
     tick "All software updates installed"
@@ -209,13 +214,15 @@ then
   # Let Homebrew complainbrag less
   export HOMEBREW_NO_ENV_HINTS=true
 
-  ohai "Checking Homebrew installation..."
+  waitforit "Checking Homebrew installation..."
   which brew > /dev/null
   if [[ ($? -eq 0) ]]
   then
+    clear_wait
     homebrew_version=`brew -v | cut -d\  -f2 | head -1`
     tick "Homebrew ${homebrew_version} is installed"
   else
+    clear_wait
     ohai "Homebrew must be installed. It is a 'package manager' that helps to install software that we need for development."
     wait_for_user
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
@@ -230,35 +237,43 @@ then
     fi
   fi
 
-  ohai "Checking libmagic..."
+  waitforit "Checking libmagic..."
   brew list -1 | grep libmagic > /dev/null
   if [[ ($? -eq 0) ]]
   then
+    clear_wait
     python_version=`python3 -V | cut -d\  -f2`
     tick "libmagic is installed"
   else
+    clear_wait
     cross "libmagic is not installed"
     wait_for_user
     ohai "Installing libmagic..."
     brew install libmagic
   fi
 
-  ohai "Checking libcs50..."
+  waitforit "Checking libcs50..."
   brew list -1 | grep libcs50 > /dev/null
   if [[ ($? -eq 0) ]]
   then
+    clear_wait
     tick "libcs50 is installed"
   else
+    clear_wait
     cross "libcs50 is not installed"
     ohai "Installing libcs50..."
     wait_for_user
     brew install minprog/pkg/libcs50
   fi
 
-  ohai "Checking Python installation..."
-  
-  # python musn't be the system Python
+  waitforit "Checking Python installation..."
   python_path=`which python3`
+  pip_path=`which pip3`
+  python_dirname=`dirname ${python_path}`
+  pip_dirname=`dirname ${pip_path}`
+  clear_wait
+
+  # python musn't be the system Python
   if [[ ($? -eq 0) && ${python_path} != /usr/bin/* ]]
   then
     python_version=`python3 -V | cut -d\  -f2`
@@ -270,9 +285,6 @@ then
     brew install python3
   fi
 
-  pip_path=`which pip3`
-  python_dirname=`dirname ${python_path}`
-  pip_dirname=`dirname ${pip_path}`
   if [[ "python_path" != "pip_path" ]]
   then
     tick "Python and pip are on the same path"
@@ -293,24 +305,27 @@ if [[ "${OS}" == "Linux" ]]
 then
 
   # Update ubuntu packages, but only if clang is NOT already installed
-  ohai "Checking software updates..."
+  # waitforit "Checking software updates..."
   which clang > /dev/null
   if [[ ($? -ne 0) ]]
   then
     ohai "Updating Ubuntu..."
     echo "Please enter your sudo password if needed..."
     sudo true
-    echo "Installing updates. This will take a few minutes!"
+    waitforit "Installing updates. This will take a few minutes!"
     sudo apt-get update 1> /dev/null && sudo apt-get upgrade -y 1> /dev/null
+    clear_wait
   fi
 
-  ohai "Checking installed packages..."
+  waitforit "Checking installed packages..."
 
   dpkg -s make clang astyle &> /dev/null
   if [[ ($? -eq 0) ]]
   then
+    clear_wait
     tick "clang is installed"
   else
+    clear_wait
     cross "clang is not installed"
     ohai "Installing make and clang..."
     wait_for_user
@@ -347,25 +362,30 @@ fi
 # Install check50 and style50 via Pip
 # ----------------------------------------------------------------------------
 
-ohai "Checking check50 and style50 installation..."
+waitforit "Checking check50 installation..."
 pip3 -q show check50 2> /dev/null
 if [[ ($? -eq 0) ]]
 then
+  clear_wait
   check50_version=`check50 -V | cut -d\  -f2`
   tick "check50 ${check50_version} is installed"
 else
+  clear_wait
   cross "check50 is not installed"
   ohai "Installing check50..."
   wait_for_user
   pip3 install check50 2>&1 | grep -Ev "(DEPRECATION|satisfied)"
 fi
 
+waitforit "Checking style50 installation..."
 pip3 -q show style50 2> /dev/null
 if [[ ($? -eq 0) ]]
 then
+  clear_wait
   style50_version=`style50 -V | cut -d\  -f2`
   tick "style50 ${style50_version} is installed"
 else
+  clear_wait
   cross "style50 is not installed"
   ohai "Installing style50..."
   wait_for_user
@@ -397,21 +417,23 @@ case "${SHELL}" in
 esac
 
 # check if config already contains include line
-ohai "Checking configuration..."
+waitforit "Checking configuration..."
 if [[ "${HOMEBREW_PREFIX}" == "/opt/homebrew" ]]
 then
   touch ${shell_rc}
   cat ${shell_rc} | grep C_INCLUDE_PATH | grep -qv "^\s*#" > /dev/null
   if [[ ($? -eq 0) ]]
   then
-      tick "Library path is configured correctly in ${shell_rc/$HOME/~}"
+    clear_wait
+    tick "Library path is configured correctly in ${shell_rc/$HOME/~}"
   else
-      cross "Library path is not configured correctly in ${shell_rc/$HOME/~}"
-      ohai "Configuring library path..."
-      wait_for_user
-      echo "export C_INCLUDE_PATH=${HOMEBREW_PREFIX}/include" >> ${shell_rc}
-      echo "export LIBRARY_PATH=${HOMEBREW_PREFIX}/lib" >> ${shell_rc}
-      ohai "When done, please close your terminal window and reopen to activate!"
+    clear_wait
+    cross "Library path is not configured correctly in ${shell_rc/$HOME/~}"
+    ohai "Configuring library path..."
+    wait_for_user
+    echo "export C_INCLUDE_PATH=${HOMEBREW_PREFIX}/include" >> ${shell_rc}
+    echo "export LIBRARY_PATH=${HOMEBREW_PREFIX}/lib" >> ${shell_rc}
+    ohai "When done, please close your terminal window and reopen to activate!"
   fi
 fi
 
@@ -499,5 +521,3 @@ int main() {
 EOF
   fi
 fi
-
-ohai "Everything's done now!"
