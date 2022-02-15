@@ -444,14 +444,16 @@ else
   cross "${programming_dir_display} does not exist"
   ohai "Creating ${programming_dir_display} directory"
   wait_for_user
-  mkdir ${programming_dir}
+  mkdir "${programming_dir}"
 fi
 
 # ----------------------------------------------------------------------------
 # Create Makefile in root development directory
 # ----------------------------------------------------------------------------
 
-cd ${programming_dir}
+# go to the user's programming directory to perform the next parts
+cd "${programming_dir}"
+
 if [[ -f Makefile && -s Makefile ]]
 then
   tick "Makefile is present in ${programming_dir_display}"
@@ -468,6 +470,27 @@ else
 clean:
 	rm -f *.o a.out core
 EOF
+fi
+
+if [[ "$1" == "--test" ]]
+then
+  if [[ -f test.c && -s test.c ]]
+  then
+    tick "test.c is present in ${programming_dir_display}"
+  else
+    cross "test.c is not present in ${programming_dir_display}"
+    ohai "Creating test.c in ${programming_dir_display}"
+    wait_for_user
+    cat > test.c << EOF
+#include <stdio.h>
+#include <cs50.h>
+
+int main() {
+    int count = get_int("");
+    printf("%d", count);
+}
+EOF
+  fi
 fi
 
 ohai "Everything's done now!"
