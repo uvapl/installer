@@ -391,8 +391,6 @@ case "${SHELL}" in
     ;;
 esac
 
-# echo ${shell_profile}
-
 # check if config already contains include line
 ohai "Checking configuration..."
 if [[ "${HOMEBREW_PREFIX}" == "/opt/homebrew" ]]
@@ -409,6 +407,18 @@ then
       echo "export LIBRARY_PATH=${HOMEBREW_PREFIX}/lib" >> ${shell_rc}
       ohai "When done, please close your terminal window and reopen to activate!"
   fi
+fi
+
+# check if config already contains include line
+cat ${shell_rc} | grep EDITOR | grep -qv "^\s*#" > /dev/null
+if [[ ($? -eq 0) ]]
+then
+    tick "Editor path is configured correctly in ${shell_rc/$HOME/~}"
+else
+    cross "Editor path is not configured correctly in ${shell_rc/$HOME/~}"
+    ohai "Configuring editor path..."
+    wait_for_user
+    echo "export EDITOR=nano" >> ${shell_rc}
 fi
 
 # ----------------------------------------------------------------------------
