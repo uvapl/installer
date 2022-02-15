@@ -219,9 +219,13 @@ then
     ohai "Homebrew must be installed. It is a 'package manager' that helps to install software that we need for development."
     wait_for_user
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    if [[ ($? -eq 0) ]]
+    
+    # add homebrew to shell zprofile when running on M1 macs
+    # because /opt is not on the default path
+    if [[ ($? -eq 0) && "${HOMEBREW_PREFIX}" = "/opt/homebrew" ]]
     then
       echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> .zprofile
+      # add the environment to the current shell so we can use homebrew to install
       eval "$(/opt/homebrew/bin/brew shellenv)"
     fi
   fi
