@@ -399,6 +399,7 @@ esac
 ohai "Checking configuration..."
 if [[ "${HOMEBREW_PREFIX}" == "/opt/homebrew" ]]
 then
+  touch ${shell_rc}
   cat ${shell_rc} | grep C_INCLUDE_PATH | grep -qv "^\s*#" > /dev/null
   if [[ ($? -eq 0) ]]
   then
@@ -414,6 +415,7 @@ then
 fi
 
 # check if config already contains include line
+touch ${shell_rc}
 cat ${shell_rc} | grep EDITOR | grep -qv "^\s*#" > /dev/null
 if [[ ($? -eq 0) ]]
 then
