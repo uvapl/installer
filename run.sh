@@ -168,6 +168,25 @@ else
 fi
 
 # ----------------------------------------------------------------------------
+# Check that user is not root before continuing
+# ----------------------------------------------------------------------------
+
+user_name=`whoami`
+if [[ "${user_name}" == "root" ]]
+then
+  if [[ "${OS}" == "Linux" ]]
+  then
+    echo "If running WSL on Windows, please reset your install as per https://askubuntu.com/a/1082091"
+    echo "Then restart Ubuntu and create a new user, and run this script again."
+    exit 1
+  elif [[ "${OS}" == "Darwin" ]]
+  then
+    echo "Please do not run this script using sudo!"
+    exit 1
+  fi
+fi
+
+# ----------------------------------------------------------------------------
 # Install Homebrew, libmagic (for style50), libcs50 and Python on Mac
 # ----------------------------------------------------------------------------
 
