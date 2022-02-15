@@ -420,14 +420,13 @@ esac
 waitforit "Checking configuration..."
 if [[ "${HOMEBREW_PREFIX}" == "/opt/homebrew" ]]
 then
+  clear_wait
   touch ${shell_rc}
   cat ${shell_rc} | grep C_INCLUDE_PATH | grep -qv "^\s*#" > /dev/null
   if [[ ($? -eq 0) ]]
   then
-    clear_wait
     tick "Library path is configured correctly in ${shell_rc/$HOME/~}"
   else
-    clear_wait
     cross "Library path is not configured correctly in ${shell_rc/$HOME/~}"
     ohai "Configuring library path..."
     wait_for_user
@@ -435,6 +434,8 @@ then
     echo "export LIBRARY_PATH=${HOMEBREW_PREFIX}/lib" >> ${shell_rc}
     ohai "When done, please close your terminal window and reopen to activate!"
   fi
+else
+  clear_wait
 fi
 
 # check if config already contains include line
