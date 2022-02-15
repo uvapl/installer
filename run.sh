@@ -362,6 +362,10 @@ fi
 # Install check50 and style50 via Pip
 # ----------------------------------------------------------------------------
 
+waitforit "Updating pip..."
+pip3 install --upgrade pip &> /dev/null
+clear_wait
+
 waitforit "Checking check50 installation..."
 pip3 -q show check50 2> /dev/null
 if [[ ($? -eq 0) ]]
