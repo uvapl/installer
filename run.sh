@@ -195,6 +195,27 @@ then
 fi
 
 # ----------------------------------------------------------------------------
+# Find user's default shell config
+# ----------------------------------------------------------------------------
+
+case "${SHELL}" in
+  */bash*)
+    if [[ -r "${HOME}/.bashrc" ]]
+    then
+      shell_rc="${HOME}/.bashrc"
+    else
+      shell_rc="${HOME}/.profile"
+    fi
+    ;;
+  */zsh*)
+    shell_rc="${HOME}/.zshrc"
+    ;;
+  *)
+    shell_rc="${HOME}/.profile"
+    ;;
+esac
+
+# ----------------------------------------------------------------------------
 # Install Homebrew, libmagic (for style50), libcs50 and Python on Mac
 # ----------------------------------------------------------------------------
 
@@ -235,15 +256,48 @@ then
     ohai "Homebrew must be installed. It is a 'package manager' that helps to install software that we need for development."
     wait_for_user
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    
-    # add homebrew to shell zprofile when running on M1 macs
-    # because /opt is not on the default path
-    if [[ ($? -eq 0) && "${HOMEBREW_PREFIX}" = "/opt/homebrew" ]]
+    if [[ ($? -ne 0) ]]
     then
-      echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> .zprofile
-      # add the environment to the current shell so we can use homebrew to install
+      echo 'Homebrew install failed'
+      exit 1
+    fi
+  fi
+
+  # ----------------------------------------------------------------------------
+  # For Homebrew on M1 Macs, where everything is installed into /opt
+  # ----------------------------------------------------------------------------
+
+  # Based on the `brew` command being in /opt we assume that this is it
+  if [[ -f "/opt/homebrew/bin/brew" ]]
+  then
+    # add homebrew to shell profile because /opt is not on the default path
+    homebrew_in_zprofile=$(grep "/opt/homebrew/bin/brew" ~/.zprofile 2> /dev/null | grep -v "^\s*#")
+    homebrew_in_zshrc=$(grep "/opt/homebrew/bin/brew" ~/.zshrc 2> /dev/null | grep -v "^\s*#")
+    if [[ (-z $homebrew_in_zprofile) && (-z $homebrew_in_zshrc) ]]
+    then
+      echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
+      # also add the environment to the current shell so we can use homebrew to install
       eval "$(/opt/homebrew/bin/brew shellenv)"
     fi
+    tick "Homebrew is in /opt/homebrew and configured correctly"
+
+    # Install library PATHs in the current shell's config files
+    #  * we prefer to install in .bashrc or .zshrc to ensure this is only applied to
+    #    interactive shells
+    include_path_in_shrc=$(grep "C_INCLUDE_PATH" ${shell_rc} 2> /dev/null | grep -v "^\s*#")
+    if [[ ! -z $include_path_in_shrc ]]
+    then
+      tick "Library path is configured correctly in ${shell_rc/$HOME/~}"
+    else
+      cross "Library path is not configured correctly in ${shell_rc/$HOME/~}"
+      ohai "Configuring library path..."
+      wait_for_user
+      echo "export C_INCLUDE_PATH=${HOMEBREW_PREFIX}/include" >> ${shell_rc}
+      echo "export LIBRARY_PATH=${HOMEBREW_PREFIX}/lib" >> ${shell_rc}
+      ohai "When done, please close your terminal window and reopen to activate!"
+    fi
+  else
+    clear_wait
   fi
 
   waitforit "Checking libmagic..."
@@ -285,9 +339,9 @@ then
   if [[ ($? -eq 0) && ${python_path} != /usr/bin/* ]]
   then
     python_version=`python3 -V | cut -d\  -f2`
-    tick "Python ${python_version} is installed"
+    tick "Python ${python_version} from Homebrew is installed"
   else
-    cross "Python is not installed"
+    cross "Python from Homebrew is not installed"
     ohai "Installing Python 3 from Homebrew..."
     wait_for_user
     brew install python3
@@ -402,52 +456,6 @@ else
   ohai "Installing style50..."
   wait_for_user
   pip3 install style50 2>&1 | grep -Ev "(DEPRECATION|satisfied)"
-fi
-
-# ----------------------------------------------------------------------------
-# Install library PATHs in the current shell's config files
-#  * we prefer to install in .bashrc or .zshrc to ensure this is only applied to
-#    interactive shells
-# ----------------------------------------------------------------------------
-
-# find user's default shell config
-case "${SHELL}" in
-  */bash*)
-    if [[ -r "${HOME}/.bashrc" ]]
-    then
-      shell_rc="${HOME}/.bashrc"
-    else
-      shell_rc="${HOME}/.profile"
-    fi
-    ;;
-  */zsh*)
-    shell_rc="${HOME}/.zshrc"
-    ;;
-  *)
-    shell_rc="${HOME}/.profile"
-    ;;
-esac
-
-# check if config already contains include line
-waitforit "Checking configuration..."
-if [[ "${HOMEBREW_PREFIX}" == "/opt/homebrew" ]]
-then
-  clear_wait
-  touch ${shell_rc}
-  cat ${shell_rc} | grep C_INCLUDE_PATH | grep -qv "^\s*#" > /dev/null
-  if [[ ($? -eq 0) ]]
-  then
-    tick "Library path is configured correctly in ${shell_rc/$HOME/~}"
-  else
-    cross "Library path is not configured correctly in ${shell_rc/$HOME/~}"
-    ohai "Configuring library path..."
-    wait_for_user
-    echo "export C_INCLUDE_PATH=${HOMEBREW_PREFIX}/include" >> ${shell_rc}
-    echo "export LIBRARY_PATH=${HOMEBREW_PREFIX}/lib" >> ${shell_rc}
-    ohai "When done, please close your terminal window and reopen to activate!"
-  fi
-else
-  clear_wait
 fi
 
 # check if config already contains include line
