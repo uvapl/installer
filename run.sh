@@ -215,8 +215,17 @@ then
   export HOMEBREW_NO_ENV_HINTS=true
 
   waitforit "Checking Homebrew installation..."
-  which brew > /dev/null
-  if [[ ($? -eq 0) ]]
+
+  # after macOS upgrades, command line developer tools will be missing and xcrun reports errors
+  xcrun --version &> /dev/null
+  xcrun_ok=$?
+
+  # homebrew script must exist
+  which brew &> /dev/null
+  which_brew_ok=$?
+
+  # install homebrew and use it to install the command line tools, too
+  if [[ $xcrun_ok -eq 0 && $which_brew_ok -eq 0 ]]
   then
     clear_wait
     homebrew_version=`brew -v | cut -d\  -f2 | head -1`
