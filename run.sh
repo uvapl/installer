@@ -251,7 +251,6 @@ then
   if [[ ($? -eq 0) ]]
   then
     clear_wait
-    python_version=`python3 -V | cut -d\  -f2`
     tick "libmagic is installed"
   else
     clear_wait
