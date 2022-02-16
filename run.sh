@@ -160,6 +160,51 @@ function stop_spinner {
 }
 
 # ----------------------------------------------------------------------------
+# Create Makefile in root development directory
+# ----------------------------------------------------------------------------
+
+create_makefile() {
+  # go to the user's programming directory to perform the next parts
+
+  programming_dir=$1
+  cd "${programming_dir}"
+
+  if [[ -f Makefile && -s Makefile ]]
+  then
+    tick "Makefile is present in ${programming_dir_display}"
+  else
+    ohai "Creating Makefile in ${programming_dir_display}"
+    cat > Makefile << EOF
+# Makefile for CS50-type assignments
+
+%: %.c
+	clang -O0 -std=c11 -Wall -Werror -Wextra -Wno-sign-compare -Wno-unused-parameter -Wno-unused-variable -Wshadow -o \$@ \$< -lcs50 -lm
+
+clean:
+	rm -f *.o a.out core
+EOF
+  fi
+}
+
+test_install() {
+  if [[ -f test.c && -s test.c ]]
+  then
+    tick "test.c is present in ${programming_dir_display}"
+  else
+    ohai "Creating test.c in ${programming_dir_display}"
+    cat > test.c << EOF
+#include <stdio.h>
+#include <cs50.h>
+
+int main() {
+    int count = get_int("");
+    printf("%d", count);
+}
+EOF
+  fi
+}
+
+# ----------------------------------------------------------------------------
 # Check the operating system before continuing
 # ----------------------------------------------------------------------------
 
@@ -193,6 +238,29 @@ then
     exit 1
   fi
 fi
+
+PS3="Select the operation: "
+
+select opt in install create_makefile create_testfile quit; do
+
+  case $opt in
+    install)
+      break
+      ;;
+    create_makefile)
+      create_makefile
+      ;;
+    create_testfile)
+      test_install
+      ;;
+    quit)
+      exit 0
+      ;;
+    *) 
+      echo "Invalid option $REPLY"
+      ;;
+  esac
+done
 
 # ----------------------------------------------------------------------------
 # Find user's default shell config
@@ -495,50 +563,4 @@ else
   ohai "Creating ${programming_dir_display} directory"
   wait_for_user
   mkdir "${programming_dir}"
-fi
-
-# ----------------------------------------------------------------------------
-# Create Makefile in root development directory
-# ----------------------------------------------------------------------------
-
-# go to the user's programming directory to perform the next parts
-cd "${programming_dir}"
-
-if [[ -f Makefile && -s Makefile ]]
-then
-  tick "Makefile is present in ${programming_dir_display}"
-else
-  cross "Makefile is not present in ${programming_dir_display}"
-  ohai "Creating Makefile in ${programming_dir_display}"
-  wait_for_user
-  cat > Makefile << EOF
-# Makefile for CS50-type assignments
-
-%: %.c
-	clang -O0 -std=c11 -Wall -Werror -Wextra -Wno-sign-compare -Wno-unused-parameter -Wno-unused-variable -Wshadow -o \$@ \$< -lcs50 -lm
-
-clean:
-	rm -f *.o a.out core
-EOF
-fi
-
-if [[ "$1" == "--test" ]]
-then
-  if [[ -f test.c && -s test.c ]]
-  then
-    tick "test.c is present in ${programming_dir_display}"
-  else
-    cross "test.c is not present in ${programming_dir_display}"
-    ohai "Creating test.c in ${programming_dir_display}"
-    wait_for_user
-    cat > test.c << EOF
-#include <stdio.h>
-#include <cs50.h>
-
-int main() {
-    int count = get_int("");
-    printf("%d", count);
-}
-EOF
-  fi
 fi
