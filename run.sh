@@ -331,6 +331,27 @@ then
     fi
   fi
 
+  brew_diagnostics=`brew tap-info homebrew/core 2>&1`
+  if [[ $brew_diagnostics =~ (no commands|Not installed) ]]
+  then
+    ohai "Homebrew seems to be misconfigured. Shall we try to repair it?"
+    wait_for_user
+    rm -rf $(brew --prefix)/Library/Taps/homebrew/homebrew-core
+    brew tap homebrew/core
+    brew_diagnostics=`brew tap-info homebrew/core 2>&1`
+    if [[ $brew_diagnostics =~ (no commands|Not installed) ]]
+    then
+      ohai "Homebrew STILL seems to be misconfigured. Shall we try to repair it by reinstalling?"
+      wait_for_user
+      /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+      if [[ ($? -ne 0) ]]
+      then
+        echo 'Homebrew install failed'
+        exit 1
+      fi
+    fi
+  fi
+
   # ----------------------------------------------------------------------------
   # For Homebrew on M1 Macs, where everything is installed into /opt
   # ----------------------------------------------------------------------------
