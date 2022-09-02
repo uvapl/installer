@@ -359,6 +359,7 @@ then
   # Based on the `brew` command being in /opt we assume that this is it
   if [[ -f "/opt/homebrew/bin/brew" ]]
   then
+    waitforit "Checking Homebrew install on M1/2 mac..."
     # add homebrew to shell profile because /opt is not on the default path
     homebrew_in_zprofile=$(grep "/opt/homebrew/bin/brew" ~/.zprofile 2> /dev/null | grep -v "^\s*#")
     homebrew_in_zshrc=$(grep "/opt/homebrew/bin/brew" ~/.zshrc 2> /dev/null | grep -v "^\s*#")
@@ -368,6 +369,7 @@ then
       # also add the environment to the current shell so we can use homebrew to install
       eval "$(/opt/homebrew/bin/brew shellenv)"
     fi
+    clear_wait
     tick "Homebrew is in /opt/homebrew and configured correctly"
 
     # Install library PATHs in the current shell's config files
@@ -385,8 +387,6 @@ then
       echo "export LIBRARY_PATH=${HOMEBREW_PREFIX}/lib" >> ${shell_rc}
       ohai "When done, please close your terminal window and reopen to activate!"
     fi
-  else
-    clear_wait
   fi
 
   waitforit "Checking libmagic..."
@@ -425,7 +425,7 @@ then
   clear_wait
 
   # python musn't be the system Python
-  if [[ ($? -eq 0) && ${python_path} != /usr/bin/* ]]
+  if [[ ($? -eq 0) && ${python_path} != /usr/bin/* && ${python_path} != *Library* ]]
   then
     python_version=`python3 -V | cut -d\  -f2`
     tick "Python ${python_version} from Homebrew is installed"
