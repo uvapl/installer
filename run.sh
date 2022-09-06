@@ -403,6 +403,20 @@ then
     brew install libmagic
   fi
 
+  waitforit "Checking astyle..."
+  brew list -1 | grep astyle > /dev/null
+  if [[ ($? -eq 0) ]]
+  then
+    clear_wait
+    tick "astyle is installed"
+  else
+    clear_wait
+    cross "astyle is not installed"
+    wait_for_user
+    ohai "Installing astyle..."
+    brew install astyle
+  fi
+
   waitforit "Checking libcs50..."
   brew list -1 | grep libcs50 > /dev/null
   if [[ ($? -eq 0) ]]
@@ -526,7 +540,7 @@ then
   tick "check50 ${check50_version} is installed"
 else
   clear_wait
-  cross "check50 is not installed"
+  cross "check50 is not installed (or linked to a previous Python version)"
   ohai "Installing check50..."
   wait_for_user
   pip3 install check50 2>&1 | grep -Ev "(DEPRECATION|satisfied)"
@@ -541,7 +555,7 @@ then
   tick "style50 ${style50_version} is installed"
 else
   clear_wait
-  cross "style50 is not installed"
+  cross "style50 is not installed (or linked to a previous Python version)"
   ohai "Installing style50..."
   wait_for_user
   pip3 install style50 2>&1 | grep -Ev "(DEPRECATION|satisfied)"
