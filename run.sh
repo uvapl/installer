@@ -383,7 +383,7 @@ then
       cross "Library path is not configured correctly in ${shell_rc/$HOME/~}"
       ohai "Configuring library path..."
       wait_for_user
-      echo "export C_INCLUDE_PATH=${HOMEBREW_PREFIX}/include" >> ${shell_rc}
+      echo -e "\nexport C_INCLUDE_PATH=${HOMEBREW_PREFIX}/include" >> ${shell_rc}
       echo "export LIBRARY_PATH=${HOMEBREW_PREFIX}/lib" >> ${shell_rc}
       ohai "When done, please close your terminal window and reopen to activate!"
     fi
@@ -571,7 +571,7 @@ else
     cross "Editor path is not configured correctly in ${shell_rc/$HOME/~}"
     ohai "Configuring editor path..."
     wait_for_user
-    echo "export EDITOR=nano" >> ${shell_rc}
+    echo -e "\nexport EDITOR=nano" >> ${shell_rc}
 fi
 
 # ----------------------------------------------------------------------------
