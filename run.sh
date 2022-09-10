@@ -89,7 +89,7 @@ wait_for_user() {
   # we test for \r and \n because some stuff does \r instead
   if ! [[ "${c}" == $'\r' || "${c}" == $'\n' ]]
   then
-    echo "You did not press RETURN so we will stop!"
+    echo "\nYou did not press RETURN so we will stop!"
     exit 1
   fi
   echo
@@ -239,31 +239,37 @@ then
   fi
 fi
 
-PS3="Select the operation: "
+# ----------------------------------------------------------------------------
+# Present menu if run without command-line arguments
+# ----------------------------------------------------------------------------
 
-select opt in install create_makefile create_testfile quit; do
+if [[ -z $1 ]]
+then
+  PS3="Select the operation: "
+  select opt in install create_makefile create_testfile quit; do
 
-  case $opt in
-    install)
-      break
-      ;;
-    create_makefile)
-      create_makefile
-      ;;
-    create_testfile)
-      test_install
-      ;;
-    quit)
-      exit 0
-      ;;
-    *) 
-      echo "Invalid option $REPLY"
-      ;;
-  esac
-done
+    case $opt in
+      install)
+        break
+        ;;
+      create_makefile)
+        create_makefile
+        ;;
+      create_testfile)
+        test_install
+        ;;
+      quit)
+        exit 0
+        ;;
+      *)
+        echo "Invalid option $REPLY"
+        ;;
+    esac
+  done
+fi
 
 # ----------------------------------------------------------------------------
-# Find user's default shell config
+# Find user's default shell config and save in shell_rc variable
 # ----------------------------------------------------------------------------
 
 case "${SHELL}" in
@@ -289,48 +295,58 @@ esac
 
 if [[ "${OS}" == "Darwin" ]]
 then
-  waitforit "Checking software updates...  "
-  no_sw_updates=`softwareupdate -l 2>&1 | grep "No new software available." | wc -l`
-  clear_wait
-  if [[ "${no_sw_updates}" == "       1" ]]
+
+  # ----------- Check software updates -----------
+
+  if [[ -z $1 ]] # skip if any command line parameter is present
   then
-    tick "All software updates installed"
-  else
-    cross "Some software updates are not installed, you may need to do this before continuing."
-    wait_for_user
+    waitforit "Checking software updates...  "
+    no_sw_updates=`softwareupdate -l 2>&1 | grep "No new software available."`
+    clear_wait
+    if [[ -n $no_sw_updates ]]
+    then
+      tick "All software updates installed"
+    else
+      cross "Some software updates are not installed, you may need to do this before continuing."
+      wait_for_user
+    fi
   fi
+
+  # ----------- Homebrew -----------
 
   # Let Homebrew complainbrag less
   export HOMEBREW_NO_ENV_HINTS=true
 
   waitforit "Checking Homebrew installation..."
 
-  # after macOS upgrades, command line developer tools will be missing and xcrun reports errors
+  # after macOS upgrades, command line developer tools will be missing
+  # we then defer to Homebrew to install it
   xcrun --version &> /dev/null
   xcrun_ok=$?
 
-  # homebrew script must exist
+  # check for Homebrew itself
   which brew &> /dev/null
   which_brew_ok=$?
+
+  clear_wait
 
   # install homebrew and use it to install the command line tools, too
   if [[ $xcrun_ok -eq 0 && $which_brew_ok -eq 0 ]]
   then
-    clear_wait
     homebrew_version=`brew -v | cut -d\  -f2 | head -1`
     tick "Homebrew ${homebrew_version} is installed"
   else
-    clear_wait
-    ohai "Homebrew must be installed. It is a 'package manager' that helps to install software that we need for development."
+    ohai "Homebrew must be installed. It is a 'package manager' that helps install software for development."
     wait_for_user
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
     if [[ ($? -ne 0) ]]
     then
-      echo 'Homebrew install failed'
+      echo 'Homebrew install failed. Please ask for help!'
       exit 1
     fi
   fi
 
+  # double check if Homebrew is actually functioning
   brew_diagnostics=`brew tap-info homebrew/core 2>&1`
   if [[ $brew_diagnostics =~ (no commands|Not installed) ]]
   then
@@ -346,7 +362,7 @@ then
       /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
       if [[ ($? -ne 0) ]]
       then
-        echo 'Homebrew install failed'
+        echo 'Homebrew install failed. Please ask for help!'
         exit 1
       fi
     fi
@@ -389,57 +405,39 @@ then
     fi
   fi
 
-  waitforit "Checking libmagic..."
-  brew list -1 | grep libmagic > /dev/null
-  if [[ ($? -eq 0) ]]
-  then
-    clear_wait
-    tick "libmagic is installed"
-  else
-    clear_wait
-    cross "libmagic is not installed"
-    wait_for_user
-    ohai "Installing libmagic..."
-    brew install libmagic
-  fi
+  install_via_brew () {
+    command_to_install=$1
+    package_path=$2
 
-  waitforit "Checking astyle..."
-  brew list -1 | grep astyle > /dev/null
-  if [[ ($? -eq 0) ]]
-  then
+    waitforit "Checking ${command_to_install} installation..."
+    brew list -1 | grep ${command_to_install} > /dev/null
+    result=$?
     clear_wait
-    tick "astyle is installed"
-  else
-    clear_wait
-    cross "astyle is not installed"
-    wait_for_user
-    ohai "Installing astyle..."
-    brew install astyle
-  fi
 
-  waitforit "Checking libcs50..."
-  brew list -1 | grep libcs50 > /dev/null
-  if [[ ($? -eq 0) ]]
-  then
-    clear_wait
-    tick "libcs50 is installed"
-  else
-    clear_wait
-    cross "libcs50 is not installed"
-    ohai "Installing libcs50..."
-    wait_for_user
-    brew install minprog/pkg/libcs50
-  fi
+    if [[ ($result -eq 0) ]]
+    then
+      tick "${command_to_install} is installed"
+    else
+      cross "${command_to_install} is not installed"
+      wait_for_user
+      ohai "Installing ${command_to_install}..."
+      brew install ${package_path:-$command_to_install}
+    fi
+  }
+
+  install_via_brew libmagic
+  install_via_brew astyle
+  install_via_brew libcs50 minprog/pkg/libcs50
+
+  # ----------- Python -----------
 
   waitforit "Checking Python installation..."
   python_path=`which python3`
-  pip_path=`which pip3`
-  python_dirname=`dirname ${python_path}`
-  pip_dirname=`dirname ${pip_path}`
+  python_exists=$?
   clear_wait
 
   # python musn't be the system Python
-  if [[ ($? -eq 0) && ${python_path} != /usr/bin/* && ${python_path} != *Library* ]]
+  if [[ ($python_exists -eq 0) && $python_path != /usr/bin/* && $python_path != *Library* ]]
   then
     python_version=`python3 -V | cut -d\  -f2`
     tick "Python ${python_version} from Homebrew is installed"
@@ -450,7 +448,10 @@ then
     brew install python3
   fi
 
-  if [[ "python_path" != "pip_path" ]]
+  pip_path=`which pip3`
+  python_dirname=`dirname ${python_path}`
+  pip_dirname=`dirname ${pip_path}`
+  if [[ ${python_dirname} == ${pip_dirname} ]]
   then
     tick "Python and pip are on the same path"
   else
@@ -469,6 +470,8 @@ fi
 if [[ "${OS}" == "Linux" ]]
 then
 
+  # ----------- Check software updates -----------
+
   # Update ubuntu packages, but only if clang is NOT already installed
   # waitforit "Checking software updates..."
   which clang > /dev/null
@@ -478,19 +481,19 @@ then
     echo "Please enter your sudo password if needed..."
     sudo true
     waitforit "Installing updates. This will take a few minutes!"
-    sudo apt-get update 1> /dev/null && sudo apt-get upgrade -y 1> /dev/null
+    sudo apt-get update 1> /dev/null && sudo apt-get dist-upgrade -y 1> /dev/null
     clear_wait
   fi
 
   waitforit "Checking installed packages..."
-
   dpkg -s make clang astyle &> /dev/null
-  if [[ ($? -eq 0) ]]
+  result=$?
+  clear_wait
+
+  if [[ ($result -eq 0) ]]
   then
-    clear_wait
     tick "clang is installed"
   else
-    clear_wait
     cross "clang is not installed"
     ohai "Installing make and clang..."
     wait_for_user
@@ -531,37 +534,34 @@ waitforit "Updating pip..."
 pip3 install --upgrade pip &> /dev/null
 clear_wait
 
-waitforit "Checking check50 installation..."
-pip3 -q show check50 2> /dev/null
-if [[ ($? -eq 0) ]]
-then
-  clear_wait
-  check50_version=`check50 -V | cut -d\  -f2`
-  tick "check50 ${check50_version} is installed"
-else
-  clear_wait
-  cross "check50 is not installed (or linked to a previous Python version)"
-  ohai "Installing check50..."
-  wait_for_user
-  pip3 install check50 2>&1 | grep -Ev "(DEPRECATION|satisfied)"
-fi
+install_via_pip () {
+  command_to_install=$1
 
-waitforit "Checking style50 installation..."
-pip3 -q show style50 2> /dev/null
-if [[ ($? -eq 0) ]]
-then
+  waitforit "Checking ${command_to_install} installation..."
+  pip3 -q show ${command_to_install} 2> /dev/null
+  install_result=$?
   clear_wait
-  style50_version=`style50 -V | cut -d\  -f2`
-  tick "style50 ${style50_version} is installed"
-else
-  clear_wait
-  cross "style50 is not installed (or linked to a previous Python version)"
-  ohai "Installing style50..."
-  wait_for_user
-  pip3 install style50 2>&1 | grep -Ev "(DEPRECATION|satisfied)"
-fi
 
-# check if config already contains include line
+  if [[ (${install_result} -eq 0) ]]
+  then
+    tick "${command_to_install} is installed"
+  else
+    cross "${command_to_install} is not installed"
+    ohai "Installing ${command_to_install}..."
+    wait_for_user
+    # install while removing irrelevant output
+    pip3 install ${command_to_install} -U 2>&1 | grep -Ev "(DEPRECATION|satisfied)"
+  fi
+}
+
+install_via_pip check50
+install_via_pip style50
+
+# ----------------------------------------------------------------------------
+# Choose Nano for ad-hoc editing in the shell (like with git commit messages)
+# ----------------------------------------------------------------------------
+
+# check if shellrc already contains editor config
 touch ${shell_rc}
 cat ${shell_rc} | grep EDITOR | grep -qv "^\s*#" > /dev/null
 if [[ ($? -eq 0) ]]
