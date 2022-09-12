@@ -185,15 +185,6 @@ clear_wait
 
 echo
 
-if [[ $python3_present -eq 0 && $(file -L $python3_path) = *$(uname -m)* ]]
-then
-  tick "Python is native for this machine"
-else
-  cross "Python is not native for this machine"
-fi
-
-
-
 if [[ ($python_present -eq 0) && ($python3_present -eq 0) ]]
 then
   if [[ $python_dirname != $python3_dirname ]]
@@ -224,6 +215,17 @@ else
       echo  "Solution: install Python"
       exit 1
     fi
+  fi
+fi
+
+if [[ -n $python_command ]]
+then
+  python3_arch=$(file -L $python_command)
+  if [[ ${python3_arch/-/_} = *$(uname -m)* ]]
+  then
+    tick "Python is native for this machine"
+  else
+    cross "Python is not native for this machine"
   fi
 fi
 
