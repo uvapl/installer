@@ -600,5 +600,5 @@ else
   cross "$programming_dir_display does not exist"
   ohai "Creating $programming_dir_display directory"
   wait_for_user
-  mkdir "$programming_dir"
+  mkdir -p "$programming_dir"
 fi
