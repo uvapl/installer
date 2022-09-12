@@ -185,7 +185,7 @@ clear_wait
 
 echo
 
-if [[ `file $python3_path` = *`uname -m`* ]]
+if [[ -n $python3_path && $(file $python3_path) = *$(uname -m)* ]]
 then
   tick "Python is native for this machine"
 else
