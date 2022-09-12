@@ -209,9 +209,12 @@ EOF
 # ----------------------------------------------------------------------------
 
 OS="$(uname)"
-if [[ "${OS}" == "Linux" ]]
+if [[ "${OS}" == "Linux" ]] && which wslpath > /dev/null
 then
   ohai "Let's install the UvA Programming Lab environment in your WSL!"
+elif [[ "${OS}" == "Linux" ]]
+then
+  ohai "Let's install the UvA Programming Lab environment on your Chromebook Linux!"
 elif [[ "${OS}" == "Darwin" ]]
 then
   ohai "Let's install the UvA Programming Lab environment on your Mac!"
@@ -528,9 +531,9 @@ then
     else
       curl -Lo $tmpdir/libcs50.zip $(curl -s https://api.github.com/repos/cs50/libcs50/releases/latest | grep 'zipball_url' | cut -d\" -f4)
       unzip -d $tmpdir $tmpdir/libcs50.zip
-      unzipped_dir=$(unzip -l $tmpdir/libcs50.zip | grep Makefile | cut -w -f 5 | cut -d/ -f 1)
+      unzipped_dir=$(unzip -l $tmpdir/libcs50.zip | grep Makefile | tr -s ' ' | cut -d\  -f 5 | cut -d/ -f 1)
       make -C $tmpdir/$unzipped_dir || exit 1
-      make -C $tmpdir/$unzipped_dir install
+      sudo make -C $tmpdir/$unzipped_dir install
     fi
   fi
 
