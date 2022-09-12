@@ -512,16 +512,26 @@ then
     sudo apt-get install python3-pip -y
   fi
 
-  dpkg -s libcs50 &> /dev/null
-  if [[ ($? -eq 0) ]]
+  # hardcoded likely install path for libcs50
+  if [[ -f /usr/local/include/cs50.h ]]
   then
     tick "libcs50 is installed"
   else
     cross "libcs50 is not installed"
     ohai "Installing libcs50..."
     wait_for_user
-    curl -s https://packagecloud.io/install/repositories/cs50/repo/script.deb.sh | sudo bash
-    sudo apt-get install libcs50 -y
+    tmpdir=$(mktemp -dq /tmp/libcs50-XXXXXXXX)
+    if [[ $? -ne 0 ]]
+    then
+      echo "Could not create temp dir $tmpdir"
+      exit 1
+    else
+      curl -Lo $tmpdir/libcs50.zip $(curl -s https://api.github.com/repos/cs50/libcs50/releases/latest | grep 'zipball_url' | cut -d\" -f4)
+      unzip -d $tmpdir $tmpdir/libcs50.zip
+      unzipped_dir=$(unzip -l $tmpdir/libcs50.zip | grep Makefile | cut -w -f 5 | cut -d/ -f 1)
+      make -C $tmpdir/$unzipped_dir || exit 1
+      make -C $tmpdir/$unzipped_dir install
+    fi
   fi
 
 fi
