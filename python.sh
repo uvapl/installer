@@ -362,6 +362,5 @@ then
   sudo rm -rf /Applications/Python*
 fi
 
-echo
 echo "Note: it is recommended to run this script multiple times until everything checks out!"
 echo

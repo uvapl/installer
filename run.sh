@@ -578,24 +578,27 @@ fi
 # Create a development directory
 # ----------------------------------------------------------------------------
 
-if [[ "${OS}" == "Linux" ]]
+if [[ "$OS" == "Linux" ]] && which wslpath > /dev/null
 then
-  homedir=`wslpath "$(wslvar USERPROFILE)"`
-elif [[ "${OS}" == "Darwin" ]]
-then
-  # ~ is automatically expanded here
+  homedir=$(wslpath "$(wslvar USERPROFILE)")
+else
+  # Note: ~ is automatically expanded here which is not nice for display
   homedir=~
 fi
+
+# construct full path to programming dir
 programming_dir="${homedir}/Documents/Programming"
+
+# replace expanded homedir by ~ again for display purposes
 programming_dir_display="${programming_dir/$HOME/~}"
 
-if [[ -d ${programming_dir} ]]
+if [[ -d $programming_dir ]]
 then
   # print path using ~ to enhance usability
-  tick "${programming_dir_display} exists"
+  tick "$programming_dir_display exists"
 else
-  cross "${programming_dir_display} does not exist"
-  ohai "Creating ${programming_dir_display} directory"
+  cross "$programming_dir_display does not exist"
+  ohai "Creating $programming_dir_display directory"
   wait_for_user
-  mkdir "${programming_dir}"
+  mkdir "$programming_dir"
 fi
