@@ -221,7 +221,7 @@ fi
 if [[ -n $python_command ]]
 then
   python3_arch=$(file -L $python_command)
-  if [[ ${python3_arch/-/_} = *$(uname -m)* ]]
+  if [[ ${python3_arch//-/_} = *$(uname -m)* ]]
   then
     tick "Python is native for this machine"
   else
