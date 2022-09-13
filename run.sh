@@ -610,8 +610,7 @@ then
 function check50 ()
 {
   check50_cmd=\$(which check50)
-  output=\$(\$check50_cmd -l \$1)
-  output=\${output/file:\/\//\\\\wsl\\$\\Ubuntu}
+  output=\$(\$check50_cmd -l \$1 | sed '\$s/file:\/\//\\\\\\\\wsl\\$\\\\Ubuntu/;\$s/\//\\\\/g')
   echo "\${output}"
 }
 EOF
