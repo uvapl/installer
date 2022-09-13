@@ -503,8 +503,7 @@ then
     sudo apt-get install make clang astyle unzip -y
   fi
 
-  which python3 > /dev/null
-  if [[ ($? -eq 0) ]]
+  if which python3 > /dev/null || which pip3 > /dev/null
   then
     python_version=`python3 -V | cut -d\  -f2`
     tick "Python ${python_version} and pip are installed"
