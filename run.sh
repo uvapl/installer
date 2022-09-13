@@ -565,6 +565,16 @@ install_via_pip () {
     # install while removing irrelevant output
     pip3 install ${command_to_install} -U 2>&1 | grep -Ev "(DEPRECATION|satisfied)"
   fi
+  
+  # try to run it, catch error to see if reinstall might be needed
+  $command_to_install 2>&1 | grep ModuleNotFoundError > /dev/null
+  if (($? == 0))
+  then
+    cross "It seems that $command_to_install doesn't work"
+    echo "Trying to re-install"
+    wait_for_user
+    pip3 install $command_to_install --force-reinstall -U 2>&1 | grep -Ev "(DEPRECATION|satisfied)"
+  fi
 }
 
 install_via_pip check50
