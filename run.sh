@@ -609,10 +609,10 @@ then
     cat >> $shell_rc << EOF
 function check50 ()
 {
-  check50_cmd=$(which check50)
-  output=$($check50_cmd -l $1)
-  output=${output/file:\/\//\\\\wsl\$\\Ubuntu}
-  echo "${output}"
+  check50_cmd=\$(which check50)
+  output=\$(\$check50_cmd -l \$1)
+  output=\${output/file:\/\//\\\\wsl\\$\\Ubuntu}
+  echo "\${output}"
 }
 EOF
   fi
