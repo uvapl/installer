@@ -596,6 +596,28 @@ else
     echo -e "\nexport EDITOR=nano" >> ${shell_rc}
 fi
 
+# on WSL, check if check50 shell function override is defined
+if [[ "$OS" == "Linux" ]] && which wslpath > /dev/null
+then
+  if awk '/function check50/,/\n}/' $shell_rc
+  then
+    tick "check50 is hacked to display correct URLs"
+  else
+    cross "check50 displays the wrong URLs"
+    ohai "Let us hack it a little bit"
+    wait_for_user
+    cat >> $shell_rc << EOF
+function check50 ()
+{
+  check50_cmd=$(which check50)
+  output=$($check50_cmd -l $1)
+  output=${output/file:\/\//\\\\wsl\$\\Ubuntu}
+  echo "${output}"
+}
+EOF
+  fi
+fi
+
 # ----------------------------------------------------------------------------
 # Create a development directory
 # ----------------------------------------------------------------------------
