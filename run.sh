@@ -516,7 +516,7 @@ then
   fi
 
   # hardcoded likely install path for libcs50
-  if [[ -f /usr/local/include/cs50.h ]]
+  if [[ -f /usr/local/include/cs50.h || -f /usr/include/cs50.h ]]
   then
     tick "libcs50 is installed"
   else
