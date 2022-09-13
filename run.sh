@@ -599,7 +599,7 @@ fi
 # on WSL, check if check50 shell function override is defined
 if [[ "$OS" == "Linux" ]] && which wslpath > /dev/null
 then
-  if awk '/function check50/,/\n}/' $shell_rc > /dev/null
+  if awk 'BEGIN { status=1 }; /function check50/,/\n}/ { status=0 }; END { exit status }' $shell_rc > /dev/null
   then
     tick "check50 is hacked to display correct URLs"
   else
