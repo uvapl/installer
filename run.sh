@@ -489,7 +489,7 @@ then
   fi
 
   waitforit "Checking installed packages..."
-  dpkg -s make clang astyle &> /dev/null
+  dpkg -s make clang astyle unzip &> /dev/null
   result=$?
   clear_wait
 
@@ -604,16 +604,18 @@ fi
 if [[ "$OS" == "Linux" ]] && which wslpath > /dev/null
 then
   homedir=$(wslpath "$(wslvar USERPROFILE)")
+  # construct full path to programming dir
+  programming_dir="${homedir}/Documents/Programming"
+  # replace expanded homedir by ~ again for display purposes
+  programming_dir_display="$programming_dir"
 else
   # Note: ~ is automatically expanded here which is not nice for display
   homedir=~
+  # construct full path to programming dir
+  programming_dir="${homedir}/Documents/Programming"
+  # replace expanded homedir by ~ again for display purposes
+  programming_dir_display="${programming_dir/$homedir/~}"
 fi
-
-# construct full path to programming dir
-programming_dir="${homedir}/Documents/Programming"
-
-# replace expanded homedir by ~ again for display purposes
-programming_dir_display="${programming_dir/$HOME/~}"
 
 if [[ -d $programming_dir ]]
 then
@@ -625,3 +627,5 @@ else
   wait_for_user
   mkdir -p "$programming_dir"
 fi
+
+create_makefile $programming_dir
