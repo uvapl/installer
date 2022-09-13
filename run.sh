@@ -503,7 +503,7 @@ then
     sudo apt-get install make clang astyle -y
   fi
 
-  which pip3 > /dev/null
+  which python3 > /dev/null
   if [[ ($? -eq 0) ]]
   then
     python_version=`python3 -V | cut -d\  -f2`
