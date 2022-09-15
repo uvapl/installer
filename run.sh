@@ -600,7 +600,7 @@ fi
 if [[ "$OS" == "Linux" ]] && which wslpath > /dev/null
 then
   wait_for_user
-    sed -I .pyorg_uninstalled '/^function check50/,/^}$/d' $shell_rc
+  sed -I .pyorg_uninstalled '/^function check50/,/^}$/d' $shell_rc
   cat >> $shell_rc << EOF
 function check50 ()
 {
