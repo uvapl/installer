@@ -606,7 +606,7 @@ then
 function check50 ()
 {
   check50_cmd=$(which check50)
-  output=$($check50_cmd -l $* | sed '\$s/file:\/\//\\\\wsl\\\$\\Ubuntu/;\$s/\//\\/g')
+  output=$($check50_cmd -l $* | sed '\$s/file:\/\//\\\\\\\\wsl\\\\\$\\\\Ubuntu/;\$s/\\//\\\\/g')
   echo "${output}"
 }
 EOF
