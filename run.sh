@@ -601,14 +601,14 @@ if [[ "$OS" == "Linux" ]] && which wslpath > /dev/null
 then
   wait_for_user
   sed -I .check50_hack '/^function check50/,/^}$/d' $shell_rc
-  cat >> $shell_rc << EOF
-function check50 ()
-{
-  check50_cmd=\$(which check50)
-  output=\$(\$check50_cmd -l \$* | sed '\$s/file:\/\//\\\\\\\\wsl\\$\\\\Ubuntu/;\$s/\//\\\\/g')
-  echo "\${output}"
-}
-EOF
+  cat >> $shell_rc <<-"EOF"
+    function check50 ()
+    {
+      check50_cmd=$(which check50)
+      output=$($check50_cmd -l $* | sed '$s/file:\/\//\\\\wsl\\$\\Ubuntu/;\$s/\//\\/g')
+      echo "${output}"
+    }
+    EOF
 fi
 
 # ----------------------------------------------------------------------------
