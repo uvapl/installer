@@ -606,6 +606,7 @@ then
     cross "check50 displays the wrong URLs"
     ohai "Let us hack it a little bit"
     wait_for_user
+    sed -I .pyorg_uninstalled '/^function check50/,/^}$/d' $shell_rc
     cat >> $shell_rc << EOF
 function check50 ()
 {
