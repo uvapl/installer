@@ -647,3 +647,8 @@ else
 fi
 
 create_makefile "$programming_dir"
+
+echo
+echo "Note: it is recommended to run this script multiple times until everything checks out."
+echo "When everything seems in order, you may need to close and re-open the terminal."
+echo
