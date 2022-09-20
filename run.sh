@@ -489,7 +489,7 @@ then
   fi
 
   waitforit "Checking installed packages..."
-  dpkg -s make clang astyle unzip &> /dev/null
+  dpkg -s make clang astyle unzip git &> /dev/null
   result=$?
   clear_wait
 
