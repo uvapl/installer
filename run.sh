@@ -557,6 +557,13 @@ install_via_pip () {
   if [[ (${install_result} -eq 0) ]]
   then
     tick "${command_to_install} is installed"
+    waitforit "Checking ${command_to_install} installation..."
+    output=$(pip3 install ${command_to_install} -U 2>&1 | grep -Ev "(DEPRECATION|satisfied)")
+    clear_wait
+    if [[ "$output" != "" ]]
+    then
+      echo "$output"
+    fi
   else
     cross "${command_to_install} is not installed"
     ohai "Installing ${command_to_install}..."
@@ -596,24 +603,25 @@ else
     echo -e "\nexport EDITOR=nano" >> ${shell_rc}
 fi
 
-waitforit "Patching check50..."
+# waitforit "Patching check50..."
 
 # on WSL, check if check50 shell function override is defined
 if [[ "$OS" == "Linux" ]] && which wslpath > /dev/null
 then
   sed -i.check50_hack '/^function check50/,/^}$/d' $shell_rc
-  cat >> $shell_rc <<-"EOF"
-function check50 ()
-{
-  check50_cmd=$(which check50)
-  sed_script="\$s/file:\\/\\//file:\\/\\/wsl$\\/Ubuntu/"
-  output=$($check50_cmd -l $* | sed "$sed_script")
-  echo "${output}"
-}
-EOF
+  # now removed because it shouldn't be needed
+  #   cat >> $shell_rc <<-"EOF"
+  # function check50 ()
+  # {
+  #   check50_cmd=$(which check50)
+  #   sed_script="\$s/file:\\/\\//file:\\/\\/wsl$\\/Ubuntu/"
+  #   output=$($check50_cmd -l $* | sed "$sed_script")
+  #   echo "${output}"
+  # }
+  # EOF
 fi
 
-clear_wait
+# clear_wait
 
 # ----------------------------------------------------------------------------
 # Create a development directory
