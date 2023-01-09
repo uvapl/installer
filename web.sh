@@ -362,7 +362,6 @@ fi
 if [[ "${OS}" == "Msys" ]]
 then
 
-  echo "Installing software:"
   mkdir -p bin
   mkdir -p tmp
   cd tmp
