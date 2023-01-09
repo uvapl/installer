@@ -362,15 +362,18 @@ fi
 if [[ "${OS}" == "Msys" ]]
 then
 
-  mkdir bin
-  mkdir tmp
+  echo "Installing software:"
+  mkdir -p bin
+  mkdir -p tmp
   cd tmp
 
-  curl -LO https://github.com/ericchiang/pup/releases/download/v0.4.0/pup_v0.4.0_windows_386.zip
+  echo "- pup for scraping web pages"
+  curl -LOs https://github.com/ericchiang/pup/releases/download/v0.4.0/pup_v0.4.0_windows_386.zip
   unzip pup_v0.4.0_windows_386.zip
   mv pup.exe ~/bin
   
-  curl -LO https://www.sqlite.org/2022/sqlite-tools-win32-x86-3400100.zip
+  echo "- sqlite tools for database access"
+  curl -LOs https://www.sqlite.org/2022/sqlite-tools-win32-x86-3400100.zip
   unzip sqlite-tools-win32-x86-3400100.zip
   mv sqlite-tools-win32-x86-3400100/* ~/bin
 
