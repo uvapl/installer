@@ -331,9 +331,9 @@ then
     fi
   fi
 
-  install_pup_via_brew () {
-    command_to_install=pup
-    package_url=https://raw.githubusercontent.com/EricChiang/pup/master/pup.rb
+  install_via_brew () {
+    command_to_install=$1
+    package_path=$2
 
     waitforit "Checking ${command_to_install} installation..."
     brew list -1 | grep ${command_to_install} > /dev/null
@@ -347,11 +347,11 @@ then
       cross "${command_to_install} is not installed"
       wait_for_user
       ohai "Installing ${command_to_install}..."
-      brew install ${package_url}
+      brew install ${package_path:-$command_to_install}
     fi
   }
 
-  install_pup_via_brew
+  install_via_brew pup
 
 fi
 
