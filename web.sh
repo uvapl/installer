@@ -164,7 +164,7 @@ function stop_spinner {
 # ----------------------------------------------------------------------------
 
 OS="$(uname)"
-if [[ "${OS}" =~ "^MINGW" ]]
+if [[ "${OS}" =~ "^MINGW.*" ]]
 then
   ohai "Let's install some tools in your Git Bash!"
 elif [[ "${OS}" == "Darwin" ]]
@@ -359,7 +359,7 @@ fi
 # Install on Git Bash
 # ----------------------------------------------------------------------------
 
-if [[ "${OS}" =~ "^MINGW" ]]
+if [[ "${OS}" =~ "^MINGW.*" ]]
 then
 
   mkdir -p bin
