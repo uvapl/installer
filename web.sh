@@ -163,8 +163,8 @@ function stop_spinner {
 # Check the operating system before continuing
 # ----------------------------------------------------------------------------
 
-OS="$(uname -o)"
-if [[ "${OS}" == "Msys" ]]
+OS="$(uname)"
+if [[ "${OS}" =~ "^MINGW" ]]
 then
   ohai "Let's install some tools in your Git Bash!"
 elif [[ "${OS}" == "Darwin" ]]
@@ -359,7 +359,7 @@ fi
 # Install on Git Bash
 # ----------------------------------------------------------------------------
 
-if [[ "${OS}" == "Msys" ]]
+if [[ "${OS}" =~ "^MINGW" ]]
 then
 
   mkdir -p bin
