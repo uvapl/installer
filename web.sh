@@ -362,7 +362,7 @@ fi
 if [[ "${OS}" =~ ^MINGW ]]
 then
 
-  cd $HOME
+  cd "${HOME}"
   mkdir -p bin
   mkdir -p tmp
   cd tmp
