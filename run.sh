@@ -503,6 +503,21 @@ then
     sudo apt-get install make clang astyle unzip wslu --no-install-recommends -y
   fi
 
+  waitforit "Checking WSL utilities..."
+  dpkg -s wslu &> /dev/null
+  result=$?
+  clear_wait
+
+  if [[ ($result -eq 0) ]]
+  then
+    tick "WSL utilities are installed"
+  else
+    cross "WSL utilities are not installed"
+    ohai "Installing WSL utilities..."
+    wait_for_user
+    sudo apt-get install wslu --no-install-recommends -y
+  fi
+
   if which python3 > /dev/null && which pip3 > /dev/null
   then
     python_version=`python3 -V | cut -d\  -f2`
