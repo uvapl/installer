@@ -500,7 +500,7 @@ then
     cross "clang is not installed"
     ohai "Installing make and clang..."
     wait_for_user
-    sudo apt-get install make clang astyle unzip -y
+    sudo apt-get install make clang astyle unzip wslu --no-install-recommends -y
   fi
 
   if which python3 > /dev/null && which pip3 > /dev/null
