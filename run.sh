@@ -430,6 +430,7 @@ then
 
   install_via_brew libmagic
   install_via_brew astyle
+  install_via_brew clang-format
   install_via_brew libcs50 minprog/pkg/libcs50
 
   # ----------- Python -----------
@@ -617,26 +618,6 @@ else
     wait_for_user
     echo -e "\nexport EDITOR=nano" >> ${shell_rc}
 fi
-
-# waitforit "Patching check50..."
-
-# on WSL, check if check50 shell function override is defined
-if [[ "$OS" == "Linux" ]] && which wslpath > /dev/null
-then
-  sed -i.check50_hack '/^function check50/,/^}$/d' $shell_rc
-  # now removed because it shouldn't be needed
-  #   cat >> $shell_rc <<-"EOF"
-  # function check50 ()
-  # {
-  #   check50_cmd=$(which check50)
-  #   sed_script="\$s/file:\\/\\//file:\\/\\/wsl$\\/Ubuntu/"
-  #   output=$($check50_cmd -l $* | sed "$sed_script")
-  #   echo "${output}"
-  # }
-  # EOF
-fi
-
-# clear_wait
 
 # ----------------------------------------------------------------------------
 # Create a development directory
