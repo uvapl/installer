@@ -490,7 +490,7 @@ then
   fi
 
   waitforit "Checking installed packages..."
-  dpkg -s make clang astyle unzip git &> /dev/null
+  dpkg -s make clang astyle clang-format unzip git &> /dev/null
   result=$?
   clear_wait
 
@@ -501,7 +501,7 @@ then
     cross "clang is not installed"
     ohai "Installing make and clang..."
     wait_for_user
-    sudo apt-get install make clang astyle unzip wslu --no-install-recommends -y
+    sudo apt-get install make clang astyle clang-format unzip wslu --no-install-recommends -y
   fi
 
   waitforit "Checking WSL utilities..."
