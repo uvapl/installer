@@ -84,12 +84,13 @@ ring_bell() {
 
 wait_for_user() {
   local c
-  echo -n "Press ${tty_bold}RETURN${tty_reset} to continue install or any other key to abort:"
+  echo -n "Press ${tty_bold}RETURN/ENTER${tty_reset} to continue install or any other key to abort:"
   getc c
   # we test for \r and \n because some stuff does \r instead
   if ! [[ "${c}" == $'\r' || "${c}" == $'\n' ]]
   then
-    echo "\nYou did not press RETURN so we will stop!"
+	  echo
+    ohai "You did not press RETURN/ENTER so we will stop!"
     exit 1
   fi
   echo
@@ -246,30 +247,30 @@ fi
 # Present menu if run without command-line arguments
 # ----------------------------------------------------------------------------
 
-if [[ -z $1 ]]
-then
-  PS3="Select the operation: "
-  select opt in install create_makefile create_testfile quit; do
-
-    case $opt in
-      install)
-        break
-        ;;
-      create_makefile)
-        create_makefile
-        ;;
-      create_testfile)
-        test_install
-        ;;
-      quit)
-        exit 0
-        ;;
-      *)
-        echo "Invalid option $REPLY"
-        ;;
-    esac
-  done
-fi
+# if [[ -z $1 ]]
+# then
+#   PS3="Select the operation: "
+#   select opt in install create_makefile create_testfile quit; do
+#
+#     case $opt in
+#       install)
+#         break
+#         ;;
+#       create_makefile)
+#         create_makefile
+#         ;;
+#       create_testfile)
+#         test_install
+#         ;;
+#       quit)
+#         exit 0
+#         ;;
+#       *)
+#         echo "Invalid option $REPLY"
+#         ;;
+#     esac
+#   done
+# fi
 
 # ----------------------------------------------------------------------------
 # Find user's default shell config and save in shell_rc variable
@@ -346,28 +347,6 @@ then
     then
       echo 'Homebrew install failed. Please ask for help!'
       exit 1
-    fi
-  fi
-
-  # double check if Homebrew is actually functioning
-  brew_diagnostics=`brew tap-info homebrew/core 2>&1`
-  if [[ $brew_diagnostics =~ (no commands|Not installed) ]]
-  then
-    ohai "Homebrew seems to be misconfigured. Shall we try to repair it?"
-    wait_for_user
-    rm -rf $(brew --prefix)/Library/Taps/homebrew/homebrew-core
-    brew tap homebrew/core
-    brew_diagnostics=`brew tap-info homebrew/core 2>&1`
-    if [[ $brew_diagnostics =~ (no commands|Not installed) ]]
-    then
-      ohai "Homebrew STILL seems to be misconfigured. Shall we try to repair it by reinstalling?"
-      wait_for_user
-      /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-      if [[ ($? -ne 0) ]]
-      then
-        echo 'Homebrew install failed. Please ask for help!'
-        exit 1
-      fi
     fi
   fi
 
@@ -452,6 +431,7 @@ then
     brew install python3
   fi
 
+  python_path=`which python3`
   pip_path=`which pip3`
   python_dirname=`dirname ${python_path}`
   pip_dirname=`dirname ${pip_path}`
@@ -574,7 +554,7 @@ install_via_pip () {
   then
     tick "${command_to_install} is installed"
     waitforit "Checking ${command_to_install} installation..."
-    output=$(pip3 install ${command_to_install} -U 2>&1 | grep -Ev "(DEPRECATION|satisfied)")
+    output=$(pip3 install ${command_to_install} -U 2>&1 | grep -Ev "DEPRECATION|satisfied|argparse")
     clear_wait
     if [[ "$output" != "" ]]
     then
@@ -585,7 +565,7 @@ install_via_pip () {
     ohai "Installing ${command_to_install}..."
     wait_for_user
     # install while removing irrelevant output
-    pip3 install ${command_to_install} -U 2>&1 | grep -Ev "(DEPRECATION|satisfied)"
+    pip3 install ${command_to_install} -U 2>&1 | grep -Ev "DEPRECATION|satisfied|argparse"
   fi
   
   # try to run it, catch error to see if reinstall might be needed
@@ -595,10 +575,12 @@ install_via_pip () {
     cross "It seems that $command_to_install doesn't work"
     echo "Trying to re-install"
     wait_for_user
-    pip3 install $command_to_install --force-reinstall -U 2>&1 | grep -Ev "(DEPRECATION|satisfied)"
+    pip3 install $command_to_install --force-reinstall -U 2>&1 | grep -Ev "DEPRECATION|satisfied"
   fi
 }
 
+# note: the install_via_pip also tries to _run_ the installed tool, so it doens't
+# work for packages that do not contain a self-named executable
 install_via_pip check50
 install_via_pip style50
 
@@ -654,5 +636,5 @@ create_makefile "$programming_dir"
 
 echo
 echo "Note: it is recommended to run this script multiple times until everything checks out."
-echo "When everything seems in order, you may need to close and re-open the terminal."
+echo "${tty_bold}Before your run again${tty_reset}, you should close and re-open the terminal."
 echo
