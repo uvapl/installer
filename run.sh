@@ -501,7 +501,7 @@ then
     cross "clang is not installed"
     ohai "Installing make and clang..."
     wait_for_user
-    sudo apt-get install make clang astyle clang-format unzip wslu --no-install-recommends -y
+    sudo apt-get install make clang astyle clang-format unzip wslu manpages-dev --no-install-recommends -y
   fi
 
   waitforit "Checking WSL utilities..."
