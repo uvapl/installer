@@ -465,6 +465,7 @@ then
     echo "Please enter your sudo password if needed..."
     sudo true
     waitforit "Installing updates. This will take a few minutes! "
+    sudo hwclock -s
     sudo apt-get update 1> /dev/null && sudo apt-get dist-upgrade -y 1> /dev/null
     clear_wait
   fi
