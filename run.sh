@@ -582,6 +582,7 @@ install_via_pip () {
 
 # note: the install_via_pip also tries to _run_ the installed tool, so it doens't
 # work for packages that do not contain a self-named executable
+install_via_pip jellyfish==0.10.0
 install_via_pip check50
 install_via_pip style50
 
