@@ -555,7 +555,7 @@ install_via_pip () {
   then
     tick "${command_to_install} is installed"
     waitforit "Checking ${command_to_install} installation..."
-    output=$(pip3 install ${command_to_install} -U 2>&1 | grep -Ev "DEPRECATION|satisfied|argparse")
+    output=$(pip3 install ${command_to_install} --break-system-packages -U 2>&1 | grep -Ev "DEPRECATION|satisfied|argparse")
     clear_wait
     if [[ "$output" != "" ]]
     then
@@ -566,7 +566,7 @@ install_via_pip () {
     ohai "Installing ${command_to_install}..."
     wait_for_user
     # install while removing irrelevant output
-    pip3 install ${command_to_install} -U 2>&1 | grep -Ev "DEPRECATION|satisfied|argparse"
+    pip3 install ${command_to_install} --break-system-packages -U 2>&1 | grep -Ev "DEPRECATION|satisfied|argparse"
   fi
   
   # try to run it, catch error to see if reinstall might be needed
@@ -576,7 +576,7 @@ install_via_pip () {
     cross "It seems that $command_to_install doesn't work"
     echo "Trying to re-install"
     wait_for_user
-    pip3 install $command_to_install --force-reinstall -U 2>&1 | grep -Ev "DEPRECATION|satisfied"
+    pip3 install $command_to_install --force-reinstall --break-system-packages -U 2>&1 | grep -Ev "DEPRECATION|satisfied"
   fi
 }
 
