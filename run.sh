@@ -3,6 +3,30 @@
 # ----------------------------------------------------------------------------
 # UvA Programming lab development environment installer
 #
+# Runs on macOS and on Linux (including WSL) only.
+#
+# installs on macOS, via Homebrew:
+#   * Homebrew itself, including the command line developer tools
+#   * libmagic, for style50
+#   * astyle and clang-format, for formatting C code
+#   * libcs50
+#   * python3
+#
+# installs on Linux, via apt:
+#   * make, clang, astyle, clang-format, unzip, git and manpages-dev
+#   * wslu, the WSL utilities
+#   * python3-pip
+#   * libcs50, built from the latest release on GitHub
+#
+# installs on both, via pip:
+#   * jellyfish 0.10.0, check50 and style50
+#
+# also configures on both:
+#   * the Homebrew include and library paths, in the shell config
+#   * nano as the EDITOR, in the shell config
+#   * a ~/Documents/Programming directory, containing a Makefile for CS50-type
+#     assignments
+#
 # contributors:
 #   * Martijn Stegeman (@stgm)
 #   * Marijn Doeve (@TheRijn)
@@ -569,7 +593,7 @@ install_via_pip () {
     # install while removing irrelevant output
     pip3 install ${command_to_install_with_version} --break-system-packages -U 2>&1 | grep -Ev "DEPRECATION|satisfied|argparse"
   fi
-  
+
   # try to run it, catch error to see if reinstall might be needed
   $command_to_install 2>&1 | grep ModuleNotFoundError > /dev/null
   if (($? == 0))
