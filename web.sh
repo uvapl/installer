@@ -3,6 +3,16 @@
 # ----------------------------------------------------------------------------
 # UvA Programming lab development environment installer
 #
+# Runs on macOS and on Git Bash (Windows) only.
+#
+# installs on macOS:
+#   * Homebrew, including the command line developer tools
+#   * pup, for scraping web pages
+#
+# installs on Git Bash, into ~/bin:
+#   * pup 0.4.0, for scraping web pages
+#   * sqlite tools 3.40.1, for database access
+#
 # contributors:
 #   * Martijn Stegeman (@stgm)
 #   * Marijn Doeve (@TheRijn)
@@ -195,28 +205,7 @@ then
 fi
 
 # ----------------------------------------------------------------------------
-# Find user's default shell config and save in shell_rc variable
-# ----------------------------------------------------------------------------
-
-case "${SHELL}" in
-  */bash*)
-    if [[ -r "${HOME}/.bashrc" ]]
-    then
-      shell_rc="${HOME}/.bashrc"
-    else
-      shell_rc="${HOME}/.profile"
-    fi
-    ;;
-  */zsh*)
-    shell_rc="${HOME}/.zshrc"
-    ;;
-  *)
-    shell_rc="${HOME}/.profile"
-    ;;
-esac
-
-# ----------------------------------------------------------------------------
-# Install Homebrew, libmagic (for style50), libcs50 and Python on Mac
+# Install Homebrew and pup on Mac
 # ----------------------------------------------------------------------------
 
 if [[ "${OS}" == "Darwin" ]]
@@ -273,15 +262,18 @@ then
   fi
 
   # double check if Homebrew is actually functioning
-  brew_diagnostics=`brew tap-info homebrew/core 2>&1`
-  if [[ $brew_diagnostics =~ (no commands|Not installed) ]]
+  #  * since Homebrew 4.0 formulae come from the JSON API and homebrew/core is
+  #    normally not tapped, so we check that a formula can be looked up instead
+  brew info --json=v2 pup &> /dev/null
+  brew_ok=$?
+  if [[ $brew_ok -ne 0 ]]
   then
     ohai "Homebrew seems to be misconfigured. Shall we try to repair it?"
     wait_for_user
-    rm -rf $(brew --prefix)/Library/Taps/homebrew/homebrew-core
-    brew tap homebrew/core
-    brew_diagnostics=`brew tap-info homebrew/core 2>&1`
-    if [[ $brew_diagnostics =~ (no commands|Not installed) ]]
+    brew update --force
+    brew info --json=v2 pup &> /dev/null
+    brew_ok=$?
+    if [[ $brew_ok -ne 0 ]]
     then
       ohai "Homebrew STILL seems to be misconfigured. Shall we try to repair it by reinstalling?"
       wait_for_user
@@ -313,22 +305,6 @@ then
     fi
     clear_wait
     tick "Homebrew is in /opt/homebrew and configured correctly"
-
-    # Install library PATHs in the current shell's config files
-    #  * we prefer to install in .bashrc or .zshrc to ensure this is only applied to
-    #    interactive shells
-    include_path_in_shrc=$(grep "C_INCLUDE_PATH" ${shell_rc} 2> /dev/null | grep -v "^\s*#")
-    if [[ ! -z $include_path_in_shrc ]]
-    then
-      tick "Library path is configured correctly in ${shell_rc/$HOME/~}"
-    else
-      cross "Library path is not configured correctly in ${shell_rc/$HOME/~}"
-      ohai "Configuring library path..."
-      wait_for_user
-      echo -e "\nexport C_INCLUDE_PATH=${HOMEBREW_PREFIX}/include" >> ${shell_rc}
-      echo "export LIBRARY_PATH=${HOMEBREW_PREFIX}/lib" >> ${shell_rc}
-      ohai "When done, please close your terminal window and reopen to activate!"
-    fi
   fi
 
   install_via_brew () {
@@ -371,7 +347,7 @@ then
   curl -LOs https://github.com/ericchiang/pup/releases/download/v0.4.0/pup_v0.4.0_windows_386.zip
   unzip pup_v0.4.0_windows_386.zip
   mv pup.exe ~/bin
-  
+
   echo "- sqlite tools for database access"
   curl -LOs https://www.sqlite.org/2022/sqlite-tools-win32-x86-3400100.zip
   unzip sqlite-tools-win32-x86-3400100.zip
